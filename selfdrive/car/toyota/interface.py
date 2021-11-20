@@ -378,7 +378,7 @@ class CarInterface(CarInterfaceBase):
     ret = self.CS.update(self.cp, self.cp_cam)
 
     if self.CP.carFingerprint in NON_CAN_CONTROLLED:
-      ret.canValid = self.cp.can_valid
+      ret.canValid = True
     else:
       ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
 

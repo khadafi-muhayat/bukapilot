@@ -1,6 +1,6 @@
 from cereal import car
 from common.numpy_fast import clip
-from selfdrive.car import apply_toyota_steer_torque_limits, create_gas_command, make_can_msg
+from selfdrive.car import apply_toyota_steer_torque_limits, create_gas_command, make_can_msg, apply_std_steer_torque_limits
 from selfdrive.car.toyota.toyotacan import create_steer_command, create_ui_command, \
                                            create_accel_command, create_acc_cancel_command, \
                                            create_fcw_command, create_lta_steer_command, \
@@ -119,10 +119,10 @@ class CarController():
       else:
         can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.acc_type))
 
-    if frame % ActuatorControllerParams.GAS_STEP == 0 and CS.CP.enableGasInterceptor:
+#    if frame % ActuatorControllerParams.GAS_STEP == 0 and CS.CP.enableGasInterceptor:
       # send exactly zero if gas cmd is zero. Interceptor will send the max between read value and gas cmd.
       # This prevents unexpected pedal range rescaling
-      can_sends.append(create_acttr_gas_command(self.packer, interceptor_gas_cmd, enabled, frame // ActuatorControllerParams.GAS_STEP))
+#      can_sends.append(create_acttr_gas_command(self.packer, interceptor_gas_cmd, enabled, frame // ActuatorControllerParams.GAS_STEP))
 
     # ui mesg is at 100Hz but we send asap if:
     # - there is something to display

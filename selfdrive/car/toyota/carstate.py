@@ -41,19 +41,26 @@ class CarState(CarStateBase):
                         cp.vl["SEATS_DOORS"]["DOOR_OPEN_RL"], cp.vl["SEATS_DOORS"]["DOOR_OPEN_RR"]])
     ret.seatbeltUnlatched = cp.vl["SEATS_DOORS"]["SEATBELT_DRIVER_UNLATCHED"] != 0
 
+
     if self.CP.enableGasInterceptor:
       self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) /1800
 
     ret.gas = cp.vl["GAS_PEDAL"]["GAS_PEDAL"]
+   # ret.brake = cp.vl["BRAKE_MODULE"]["BRAKE_PRESSURE"]
 
     if self.CP.carFingerprint not in NON_CAN_CONTROLLED:
       ret.gasPressed = cp.vl["PCM_CRUISE"]["GAS_RELEASED"] == 0
-      ret.brakePressed = cp.vl["BRAKE_MODULE"]["BRAKE_PRESSED"] != 0
+     #ret.brakePressed = cp.vl["BRAKE_MODULE"]["BRAKE_PRESSED"] != 0
+     # ret.brake = cp.v1["BRAKE_MODULE"]["BRAKE_PRESSURE"]
+      print(ret.brake)
       ret.steerWarning = False # spoof LKA active
     else:
       ret.gasPressed = ret.gas > 0.6
       # Todo: change to brakepressed when brake pressure > X
-      ret.brakePressed = cp.vl["BRAKE_MODULE"]["BRAKE_PRESSED"] != 0
+      ret.brake = cp.vl["BRAKE_MODULE"]["BRAKE_PRESSURE"]
+      print(ret.brake)
+     # ret.brakePressed = cp.vl["BRAKE_MODULE"]["BRAKE_PRESSED"] != 0
+      ret.brakePressed = ret.brake != 0
       ret.steerWarning = cp.vl["EPS_STATUS"]["LKA_STATE"] not in [1, 5]
 
     ret.wheelSpeeds.fl = cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_FL"] * CV.KPH_TO_MS
@@ -202,6 +209,7 @@ class CarState(CarStateBase):
       ("STEER_ANGLE", "STEER_ANGLE_SENSOR", 0),
       ("GEAR", "GEAR_PACKET", 0),
       ("BRAKE_PRESSED", "BRAKE_MODULE", 0),
+      ("BRAKE_PRESSURE", "BRAKE_MODULE", 0),
       ("GAS_PEDAL", "GAS_PEDAL", 0),
       ("WHEEL_SPEED_FL", "WHEEL_SPEEDS", 0),
       ("WHEEL_SPEED_FR", "WHEEL_SPEEDS", 0),
