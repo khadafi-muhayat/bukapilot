@@ -68,7 +68,7 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.6371
       ret.mass = 940. + STD_CARGO_KG
 
-      else:
+    else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
 

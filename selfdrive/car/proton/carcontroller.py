@@ -71,5 +71,4 @@ class CarController():
          self.brake_pressed = True
       else:
         self.brake_pressed = False
-
-     return can_sends
+    return can_sends
