@@ -22,8 +22,8 @@ FINGERPRINTS = {
 }
 
 DBC = {
-  CAR.PROTON_SAGA: dbc_dict('proton_general_pt',None)
-  CAR.PROTON_IRIZ: dbc_dict('proton_general_pt',None)
+  CAR.PROTON_SAGA: dbc_dict('proton_general_pt',None),
+  CAR.PROTON_IRIZ: dbc_dict('proton_general_pt',None),
 #  CAR.PROTON_PERSONA: dbc_dict('proton_general_pt',None)
 
 }
