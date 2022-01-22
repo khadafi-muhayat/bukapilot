@@ -1,8 +1,9 @@
 from cereal import car
 from selfdrive.car import make_can_msg, apply_std_steer_torque_limits
 from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, \
-                                             perodua_aeb_brake, create_can_steer_command
-from selfdrive.car.perodua.values import CAR, DBC, NOT_CAN_CONTROLLED
+                                             perodua_aeb_brake, create_can_steer_command, \
+                                             perodua_create_accel_command
+from selfdrive.car.perodua.values import ACC_CAR, CAR, DBC, NOT_CAN_CONTROLLED
 from selfdrive.controls.lib.lateral_planner import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip, interp
@@ -60,28 +61,40 @@ class CarController():
       can_sends.append(create_can_steer_command(self.packer, apply_steer, enabled, frame))
 
     self.last_steer = apply_steer
+    
+    if CS.CP.carFingerprint in ACC_CAR:
+      # can_sends.append(perodua_create_accel_command(self.packer, accel_req, accel_cmd, accel_brake))
+      accel_req = 1 if (pcm_cancel == 0) else 0
+      pcm_accel_cmd = actuators.gas - actuators.brake
+      
+      if not enabled and (CS.is_cruise_latch):
+        accel_req = 0
+ 
+      can_sends.append(perodua_create_accel_command(self.packer, accel_req, 0, pcm_accel_cmd))
+      # can_sends.append(perodua_create_accel_command(self.packer, accel_req, pcm_accel_cmd, 0))
+      
+    else:
+      # gas
+      if (frame % self.params.GAS_STEP) == 0:
+        idx = frame // self.params.GAS_STEP
+        apply_gas = clip(actuators.gas, 0., 1.)
+        apply_gas = abs(apply_gas * self.params.GAS_MAX)
 
-    # gas
-    if (frame % self.params.GAS_STEP) == 0:
-      idx = frame // self.params.GAS_STEP
-      apply_gas = clip(actuators.gas, 0., 1.)
-      apply_gas = abs(apply_gas * self.params.GAS_MAX)
+        # interceptor gas
+        if CS.CP.enableGasInterceptor:
+          can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
 
-      # interceptor gas
-      if CS.CP.enableGasInterceptor:
-        can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
+      # brakes
+      if (frame % self.params.ADAS_STEP) == 0:
+        apply_brake = clip(actuators.brake, 0., 1.)
 
-    # brakes
-    if (frame % self.params.ADAS_STEP) == 0:
-      apply_brake = clip(actuators.brake, 0., 1.)
-
-      # AEB alert for non-braking cars
-      if CS.CP.carFingerprint in NOT_CAN_CONTROLLED and apply_brake > (self.params.BRAKE_ALERT_PERCENT / 100):
-        if not self.brake_pressed:
-          can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
-          self.brake_pressed = True
-        else:
-          self.brake_pressed = False
-          can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
+        # AEB alert for non-braking cars
+        if CS.CP.carFingerprint in NOT_CAN_CONTROLLED and apply_brake > (self.params.BRAKE_ALERT_PERCENT / 100):
+          if not self.brake_pressed:
+            can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
+            self.brake_pressed = True
+          else:
+            self.brake_pressed = False
+            can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
 
     return can_sends

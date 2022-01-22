@@ -86,7 +86,12 @@ class CarState(CarStateBase):
     else:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 70)
 
-    ret.steerWarning = False      # since Perodua has no LKAS, make it always no warning
+    # LKAS Warning
+    if self.CP.carFingerprint == CAR.ATIVA:
+      ret.steerWarning = cp.vl["LKAS_HUD"]["LDA_ALERT"] != 0
+    else:
+      ret.steerWarning = False    # since Perodua has no LKAS, make it always no warning
+
     ret.steerError = False        # since Perodua has no LKAS, make it always no warning
 
     # todo: find this out and add it in
@@ -123,7 +128,7 @@ class CarState(CarStateBase):
     else:
       ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
       ret.cruiseState.nonAdaptive = False
-      ret.cruiseState.speed = 7
+      ret.cruiseState.speed = cp.vl["ACC_HUD"]["SET_SPEED"]
       if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
         self.is_cruise_latch = True
       if ret.brakePressed:
@@ -140,8 +145,9 @@ class CarState(CarStateBase):
 
     # blindspot sensors
     if self.CP.enableBsm:
-      ret.leftBlindspot = False
-      ret.rightBlindspot = bool(cp.vl["BSM"]["R_BLINDSPOT"])
+      # used for lane change so its okay for the chime to work on both side.
+      ret.leftBlindspot = bool(cp.vl["BSM"]["BSM_CHIME"])
+      ret.rightBlindspot = bool(cp.vl["BSM"]["BSM_CHIME"])
     else:
       ret.leftBlindspot = False
       ret.rightBlindspot = False
@@ -201,24 +207,39 @@ class CarState(CarStateBase):
       ("RIGHT_SIGNAL", "METER_CLUSTER", 0),
       ("SEAT_BELT_WARNING", "METER_CLUSTER", 0),
       ("MAIN_DOOR", "METER_CLUSTER", 1),
+      ("LEFT_FRONT_DOOR", "METER_CLUSTER", 1),
+      ("RIGHT_BACK_DOOR", "METER_CLUSTER", 1),
+      ("LEFT_BACK_DOOR", "METER_CLUSTER", 1)
     ]
     checks = []
     
     if CP.carFingerprint == CAR.ATIVA:
-      signals.append(("R_BLINDSPOT","BSM", 0))
+      signals.append(("BSM_CHIME","BSM", 0))
       signals.append(("STEER_ANGLE", "STEERING_MODULE", 0.))
       signals.append(("MAIN_TORQUE", "STEERING_MODULE", 0.))
       signals.append(("STEERING_TORQUE", "EPS_SHAFT_TORQUE", 0.))
       signals.append(("ACC_RDY", "PCM_BUTTONS", 0))
       signals.append(("SET_MINUS", "PCM_BUTTONS", 0))
+      signals.append(("LKAS_ENGAGED", "LKAS_HUD", 0))
+      # signals.append(("STEER_CMD", "STEERING_LKAS", 0))
+      signals.append(("STEER_REQ", "STEERING_LKAS", 0))
+      signals.append(("SET_SPEED", "ACC_HUD", 0))
+      signals.append(("LDA_ALERT", "LKAS_HUD", 0))
+      # Things ativa dont have
+      # ("STEER_FRACTION", "STEER_ANGLE_SENSOR", 0),
+      # ("STEER_RATE", "STEER_ANGLE_SENSOR", 0),
+      # ("CRUISE_ACTIVE", "PCM_CRUISE", 0),
+      # ("CRUISE_STATE", "PCM_CRUISE", 0),
+      # ("GAS_RELEASED", "PCM_CRUISE", 1),
+      # ("STEER_TORQUE_DRIVER", "STEER_TORQUE_SENSOR", 0),
+      # ("TURN_SIGNALS", "STEERING_LEVERS", 3),   # 3 is no blinkers
+      # ("LKA_STATE", "EPS_STATUS", 0),
+      # ("AUTO_HIGH_BEAM", "LIGHT_STALK", 0),
     else:
       signals.append(("MAIN_TORQUE", "STEERING_TORQUE", 0))
       signals.append(("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.))
       signals.append(("AEB_ALARM", "FWD_CAM3", 0))
       signals.append(("WHEELSPEED_B", "WHEEL_SPEED", 0.))
-      signals.append(("LEFT_FRONT_DOOR", "METER_CLUSTER", 1))
-      signals.append(("RIGHT_BACK_DOOR", "METER_CLUSTER", 1))
-      signals.append(("LEFT_BACK_DOOR", "METER_CLUSTER", 1))
     
 
     # todo: make it such that enforce_checks=True

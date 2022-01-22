@@ -88,16 +88,19 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.ATIVA:
       # min speed to enable ACC. if car can do stop and go or has gas interceptor,
       # then set enabling speed to a negative value, so it won't matter.
-      ret.minEnableSpeed = 30 * CV.KPH_TO_MS
+      ret.minEnableSpeed = 0 * CV.KPH_TO_MS
       ret.wheelbase = 2.525
       ret.steerRatio = 14.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1035. + STD_CARGO_KG
 
-
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
+            
+      ret.stoppingBrakeRate = 0.1  # reach stopping target smoothly
+      ret.startingBrakeRate = 2.0  # release brakes fast
+      ret.startAccel = 1.2  # Accelerate from 0 faster
 
     else:
       ret.dashcamOnly = True
@@ -123,6 +126,18 @@ class CarInterface(CarInterfaceBase):
     # events
     events = self.create_common_events(ret)
     ret.events = events.to_msg()
+
+    # Alex Comments: might need these if ativa have low engage limit. test first
+    # if self.CS.low_speed_lockout and self.CP.openpilotLongitudinalControl:
+    #   events.add(EventName.lowSpeedLockout)
+    # if ret.vEgo < self.CP.minEnableSpeed and self.CP.openpilotLongitudinalControl:
+    #   events.add(EventName.belowEngageSpeed)
+    #   if c.actuators.gas > 0.1:
+    #     # some margin on the actuator to not false trigger cancellation while stopping
+    #     events.add(EventName.speedTooLow)
+    #   if ret.vEgo < 0.001:
+    #     # while in standstill, send a user alert
+    #     events.add(EventName.manualRestart)
 
     self.CS.out = ret.as_reader()
     return self.CS.out

@@ -79,3 +79,13 @@ def perodua_aeb_brake(packer, brake_amount):
 
   return packer.make_can_msg("FWD_CAM3", 0, values)
 
+
+def perodua_create_accel_command(packer, accel_req, accel_cmd, accel_brake):
+  values = {
+    "ACC_REQ":  accel_req,
+    "ACC_CMD": accel_cmd,
+    "MAYBE_ACC_BRAKE1": accel_brake
+  }
+
+  return packer.make_can_msg("UNKNOWN2", 0, values)
+
