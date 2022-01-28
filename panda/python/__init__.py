@@ -375,6 +375,8 @@ class Panda(object):
     return self._handle.controlRead(Panda.REQUEST_IN, 0xd0, 1, 0, 0x10)
 
   # ******************* configuration *******************
+  def rst_fw(self):
+    self._handle.controlWrite(Panda.REQUEST_OUT, 0xd8, 1, 0, b'')
 
   def set_usb_power(self, on):
     self._handle.controlWrite(Panda.REQUEST_OUT, 0xe6, int(on), 0, b'')

@@ -3,6 +3,9 @@ from cereal import car
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
+def perodua_checksum(addr,dat):
+  return ( addr + len(dat) + 1 + 1 + sum(dat)) & 0xFF
+
 def create_can_steer_command(packer, steer, steer_req, raw_cnt):
   """Creates a CAN message for the Perodua LKA Steer Command."""
 
@@ -10,12 +13,14 @@ def create_can_steer_command(packer, steer, steer_req, raw_cnt):
     "STEER_REQ": steer_req,
     "STEER_CMD": steer,
     "COUNTER": raw_cnt,
-    "SET_ME_1": 1,
+    "SET_ME_1": 0,
+    "SET_ME_1_2": 1,
   }
 
   dat = packer.make_can_msg("STEERING_LKAS", 0, values)[2]
-  crc = crc8_interceptor(dat[:-1])
+  crc = perodua_checksum(0x1d0, dat[:-1])
   values["CHECKSUM"] = crc
+
 
   return packer.make_can_msg("STEERING_LKAS", 0, values)
 

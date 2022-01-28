@@ -58,10 +58,11 @@ class CarController():
     if CS.CP.carFingerprint in NOT_CAN_CONTROLLED:
       can_sends.append(create_steer_command(self.packer, apply_steer, self.steering_direction, enabled, frame))
     else:
-      can_sends.append(create_can_steer_command(self.packer, apply_steer, enabled, frame))
+      if (frame % 2) == 0:
+        can_sends.append(create_can_steer_command(self.packer, apply_steer, enabled, (frame/2) % 15))
 
     self.last_steer = apply_steer
-    
+
     if CS.CP.carFingerprint in ACC_CAR:
       # can_sends.append(perodua_create_accel_command(self.packer, accel_req, accel_cmd, accel_brake))
       accel_req = 1 if (pcm_cancel == 0) else 0
@@ -70,7 +71,7 @@ class CarController():
       if not enabled and (CS.is_cruise_latch):
         accel_req = 0
  
-      can_sends.append(perodua_create_accel_command(self.packer, accel_req, 0, pcm_accel_cmd))
+#      can_sends.append(perodua_create_accel_command(self.packer, accel_req, 0, pcm_accel_cmd))
       # can_sends.append(perodua_create_accel_command(self.packer, accel_req, pcm_accel_cmd, 0))
       
     else:
