@@ -80,7 +80,7 @@ class CarState(CarStateBase):
       ret.steeringTorqueEps = ret.steeringTorque/1000
 
     if self.CP.carFingerprint == CAR.AXIA:
-      ret.steeringPressed = bool(abs(ret.steeringTorque) > 16)
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 18)
     elif self.CP.carFingerprint == CAR.ATIVA:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 25)
     else:
