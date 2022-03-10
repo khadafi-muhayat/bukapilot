@@ -128,7 +128,7 @@ class CarState(CarStateBase):
     else:
       ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
       ret.cruiseState.nonAdaptive = False
-      ret.cruiseState.speed = cp.vl["ACC_HUD"]["SET_SPEED"]
+      ret.cruiseState.speed = cp.vl["ACC_CMD_HUD"]["SET_SPEED"] * CV.KPH_TO_MS
       if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
         self.is_cruise_latch = True
       if ret.brakePressed:
@@ -223,7 +223,7 @@ class CarState(CarStateBase):
       signals.append(("LKAS_ENGAGED", "LKAS_HUD", 0))
       # signals.append(("STEER_CMD", "STEERING_LKAS", 0))
       signals.append(("STEER_REQ", "STEERING_LKAS", 0))
-      signals.append(("SET_SPEED", "ACC_HUD", 0))
+      signals.append(("SET_SPEED", "ACC_CMD_HUD", 0))
       signals.append(("LDA_ALERT", "LKAS_HUD", 0))
       # Things ativa dont have
       # ("STEER_FRACTION", "STEER_ANGLE_SENSOR", 0),

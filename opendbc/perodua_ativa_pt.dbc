@@ -159,11 +159,19 @@ BO_ 625 ADAS_LKAS: 8 XXX
  SG_ COUNTER_2 : 58|3@1+ (1,0) [0|63] "" XXX
  SG_ MIN_SPEED_ACC_REACHED : 8|1@0+ (1,0) [0|1] "" XXX
 
-BO_ 627 ACC_HUD: 8 XXX
- SG_ CHECKSUM : 63|8@0+ (0.55,0) [0|255] "" XXX
+BO_ 627 ACC_CMD_HUD: 8 XXX
+ SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
  SG_ SET_SPEED : 7|8@0+ (1,0) [0|255] "" XXX
  SG_ FOLLOW_DISTANCE : 15|2@0+ (1,0) [0|3] "" XXX
- SG_ NEW_SIGNAL_1 : 19|12@0+ (1,0) [0|127] "" XXX
+ SG_ IS_LEAD : 11|1@0+ (1,0) [0|1] "" XXX
+ SG_ IS_ACCEL : 38|1@0+ (1,0) [0|1] "" XXX
+ SG_ IS_DECEL : 37|1@0+ (1,0) [0|1] "" XXX
+ SG_ SET_ME_1_2 : 9|1@0+ (1,0) [0|1] "" XXX
+ SG_ SET_ME_1 : 54|1@0+ (1,0) [0|1] "" XXX
+ SG_ SET_0_WHEN_ENGAGE : 40|1@0+ (1,0) [0|1] "" XXX
+ SG_ NANI : 53|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_CMD : 20|13@0+ (0.0001,0) [0|127] "" XXX
+ SG_ SET_1_WHEN_ENGAGE : 13|1@0+ (1,0) [0|1] "" XXX
 
 CM_ SG_ 627 FOLLOW_DISTANCE "3 is 0, 2 is 1, 1 is 2";
 

@@ -6,14 +6,17 @@ VisualAlert = car.CarControl.HUDControl.VisualAlert
 def perodua_checksum(addr,dat):
   return ( addr + len(dat) + 1 + 1 + sum(dat)) & 0xFF
 
+def perodua_acc_checksum(addr,dat):
+  return ( addr + len(dat) + 1 + 2 + sum(dat)) & 0xFF
+
 def create_can_steer_command(packer, steer, steer_req, raw_cnt):
   """Creates a CAN message for the Perodua LKA Steer Command."""
 
   values = {
     "STEER_REQ": steer_req,
-    "STEER_CMD": steer,
+    "STEER_CMD": -steer if steer_req else 0,
     "COUNTER": raw_cnt,
-    "SET_ME_1": 0,
+    "SET_ME_1": 1,
     "SET_ME_1_2": 1,
   }
 
@@ -85,12 +88,24 @@ def perodua_aeb_brake(packer, brake_amount):
   return packer.make_can_msg("FWD_CAM3", 0, values)
 
 
-def perodua_create_accel_command(packer, accel_req, accel_cmd, accel_brake):
+def perodua_create_accel_command(packer, set_speed, accel_req, rising, accel_cmd, accel_brake):
   values = {
-    "ACC_REQ":  accel_req,
-    "ACC_CMD": accel_cmd,
-    "MAYBE_ACC_BRAKE1": accel_brake
+    "SET_SPEED": set_speed,
+    "FOLLOW_DISTANCE": 0,
+    "IS_LEAD": 1,
+    "IS_ACCEL": 1 if (accel_brake <= 0) else 0,
+    "IS_DECEL": 0 if (accel_brake > 0) else 0,
+    "SET_ME_1_2": 1,
+    "SET_ME_1": 1,
+    "SET_0_WHEN_ENGAGE": 0 if accel_req else 1,
+    "SET_1_WHEN_ENGAGE": 1 if accel_req else 0,
+    "NANI": 0,
+    "ACC_CMD": accel_cmd if accel_req else 0,
   }
 
-  return packer.make_can_msg("UNKNOWN2", 0, values)
+  dat = packer.make_can_msg("ACC_CMD_HUD", 0, values)[2]
+  crc = (perodua_acc_checksum(0x273, dat[:-1]))
+  values["CHECKSUM"] = crc
+
+  return packer.make_can_msg("ACC_CMD_HUD", 0, values)
 

@@ -12,7 +12,7 @@ import cereal.messaging as messaging
 class CarControllerParams():
   def __init__(self):
 
-    self.STEER_MAX = 830                   # KommuActuator dac steering value
+    self.STEER_MAX = 255                   # KommuActuator dac steering value
     self.STEER_DELTA_UP = 10               # torque increase per refresh, 0.8s to max
     self.STEER_DELTA_DOWN = 30             # torque decrease per refresh
     self.STEER_DRIVER_ALLOWANCE = 1        # allowed driver torque before start limiting
@@ -32,6 +32,7 @@ class CarController():
     self.brake_pressed = True
     self.params = CarControllerParams()
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
+    self.prev_state = False
 
   def update(self, enabled, CS, frame, actuators, visual_alert, pcm_cancel):
     can_sends = []
@@ -67,13 +68,19 @@ class CarController():
       # can_sends.append(perodua_create_accel_command(self.packer, accel_req, accel_cmd, accel_brake))
       accel_req = 1 if (pcm_cancel == 0) else 0
       pcm_accel_cmd = actuators.gas - actuators.brake
-      
-      if not enabled and (CS.is_cruise_latch):
+
+      print(actuators.gas, actuators.brake)
+
+      if not enabled:
         accel_req = 0
- 
-#      can_sends.append(perodua_create_accel_command(self.packer, accel_req, 0, pcm_accel_cmd))
-      # can_sends.append(perodua_create_accel_command(self.packer, accel_req, pcm_accel_cmd, 0))
-      
+
+      if (frame % 3) == 0:
+        if self.prev_state != enabled:
+          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, True, pcm_accel_cmd, actuators.brake))
+        else:
+          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, False, pcm_accel_cmd, actuators.brake))
+        self.prev_state = enabled
+
     else:
       # gas
       if (frame % self.params.GAS_STEP) == 0:

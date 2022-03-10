@@ -96,8 +96,8 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1035. + STD_CARGO_KG
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
-      ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
-            
+      ret.longitudinalTuning.kpV = [0.9, 0.9, 0.9]
+
       ret.stoppingBrakeRate = 0.1  # reach stopping target smoothly
       ret.startingBrakeRate = 2.0  # release brakes fast
       ret.startAccel = 1.2  # Accelerate from 0 faster
