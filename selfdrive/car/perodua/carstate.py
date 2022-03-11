@@ -65,6 +65,8 @@ class CarState(CarStateBase):
     # perodua bezza has a lower resolution brake pressure sensor
     if self.CP.carFingerprint == CAR.BEZZA:
       ret.brakePressed = ret.brake > 1.2
+    elif self.CP.carFingerprint == CAR.ATIVA:
+      ret.brakePressed = bool(cp.vl["BRAKE"]['BRAKE_ENGAGED'])
     else:
       ret.brakePressed = ret.brake > 1e-5
 
@@ -200,6 +202,7 @@ class CarState(CarStateBase):
       ("GEAR", "TRANSMISSION", 0),
       ("APPS_1", "GAS_PEDAL", 0.),
       ("BRAKE_PRESSURE", "BRAKE", 0.),
+      ("BRAKE_ENGAGED", "BRAKE", 0),
       ("INTERCEPTOR_GAS", "GAS_SENSOR", 0),
       ("GENERIC_TOGGLE", "RIGHT_STALK", 0),
       ("FOG_LIGHT", "RIGHT_STALK", 0),

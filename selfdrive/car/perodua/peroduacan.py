@@ -87,14 +87,34 @@ def perodua_aeb_brake(packer, brake_amount):
 
   return packer.make_can_msg("FWD_CAM3", 0, values)
 
+def perodua_create_brake_command(packer, enabled, decel_cmd, idx):
+  #decel_req = decel_cmd > 0
+  decel_req = enabled
+
+  values = {
+    "COUNTER": idx,
+    "BRAKE_REQ": decel_req and enabled,
+    "RISING_PUMP_ON": enabled,
+    #"SET_ME_XC8_WHEN_IDLE": -0.3599 if (enabled and decel_req) else 0,
+    "SET_ME_XC8_WHEN_IDLE": -0.55 if (enabled and decel_req) else 0,
+    "SET_ME_1_WHEN_ENGAGE": 1 if enabled else 0,
+    "BRAKE_CMD": -1.95 if (enabled and decel_req) else 0,
+  }
+
+  dat = packer.make_can_msg("ACC_BRAKE", 0, values)[2]
+  crc = (perodua_acc_checksum(0x271, dat[:-1]))
+  values["CHECKSUM"] = crc
+
+  return packer.make_can_msg("ACC_BRAKE", 0, values)
 
 def perodua_create_accel_command(packer, set_speed, accel_req, rising, accel_cmd, accel_brake):
   values = {
     "SET_SPEED": set_speed,
     "FOLLOW_DISTANCE": 0,
     "IS_LEAD": 1,
-    "IS_ACCEL": 1 if (accel_brake <= 0) else 0,
-    "IS_DECEL": 0 if (accel_brake > 0) else 0,
+    "IS_ACCEL": 0 if (accel_brake <= 0 and accel_req) else 0,
+    "IS_DECEL": 1 if accel_req else 0,
+    "IS_DECEL": 0 if (accel_brake > 0 and accel_req) else 0,
     "SET_ME_1_2": 1,
     "SET_ME_1": 1,
     "SET_0_WHEN_ENGAGE": 0 if accel_req else 1,

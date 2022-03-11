@@ -2,7 +2,8 @@ from cereal import car
 from selfdrive.car import make_can_msg, apply_std_steer_torque_limits
 from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, \
                                              perodua_aeb_brake, create_can_steer_command, \
-                                             perodua_create_accel_command
+                                             perodua_create_accel_command, \
+                                             perodua_create_brake_command
 from selfdrive.car.perodua.values import ACC_CAR, CAR, DBC, NOT_CAN_CONTROLLED
 from selfdrive.controls.lib.lateral_planner import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
@@ -74,7 +75,9 @@ class CarController():
       if not enabled:
         accel_req = 0
 
-      if (frame % 3) == 0:
+      if (frame % 5) == 0:
+        can_sends.append(perodua_create_brake_command(self.packer, enabled, actuators.brake, (frame/5) % 8))
+
         if self.prev_state != enabled:
           can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, True, pcm_accel_cmd, actuators.brake))
         else:
