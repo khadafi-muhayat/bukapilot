@@ -88,17 +88,17 @@ def perodua_aeb_brake(packer, brake_amount):
   return packer.make_can_msg("FWD_CAM3", 0, values)
 
 def perodua_create_brake_command(packer, enabled, decel_cmd, idx):
-  #decel_req = decel_cmd > 0
-  decel_req = enabled
-
+  decel_req = decel_cmd > 0.4
+  #decel_req = enabled
+  print(decel_cmd)
+  #decel_cmd = -0.1
   values = {
     "COUNTER": idx,
-    "BRAKE_REQ": decel_req and enabled,
-    "RISING_PUMP_ON": enabled,
-    #"SET_ME_XC8_WHEN_IDLE": -0.3599 if (enabled and decel_req) else 0,
-    "SET_ME_XC8_WHEN_IDLE": -0.55 if (enabled and decel_req) else 0,
+    "CMD1": 0.6 if (decel_req and enabled) else 0,
+    "BRAKE_REQ": decel_req,
+    "CMD2": -decel_cmd if (enabled and decel_req) else 0,
     "SET_ME_1_WHEN_ENGAGE": 1 if enabled else 0,
-    "BRAKE_CMD": -1.95 if (enabled and decel_req) else 0,
+    "BRAKE_CMD": -0.6 if (enabled and decel_req) else 0,
   }
 
   dat = packer.make_can_msg("ACC_BRAKE", 0, values)[2]
@@ -107,20 +107,20 @@ def perodua_create_brake_command(packer, enabled, decel_cmd, idx):
 
   return packer.make_can_msg("ACC_BRAKE", 0, values)
 
-def perodua_create_accel_command(packer, set_speed, accel_req, rising, accel_cmd, accel_brake):
+def perodua_create_accel_command(packer, set_speed, enabled, rising, accel_cmd, accel_brake):
+  #enabled= False
   values = {
-    "SET_SPEED": set_speed,
+    "SET_SPEED": set_speed * 3.6,
     "FOLLOW_DISTANCE": 0,
     "IS_LEAD": 1,
-    "IS_ACCEL": 0 if (accel_brake <= 0 and accel_req) else 0,
-    "IS_DECEL": 1 if accel_req else 0,
-    "IS_DECEL": 0 if (accel_brake > 0 and accel_req) else 0,
+    "IS_ACCEL": 1 if (accel_brake <= 0.2 and enabled) else 0,
+    "IS_DECEL": 1 if (accel_brake > 0.2 and enabled) else 0,
     "SET_ME_1_2": 1,
     "SET_ME_1": 1,
-    "SET_0_WHEN_ENGAGE": 0 if accel_req else 1,
-    "SET_1_WHEN_ENGAGE": 1 if accel_req else 0,
+    "SET_0_WHEN_ENGAGE": 0 if enabled else 1,
+    "SET_1_WHEN_ENGAGE": 1 if enabled else 0,
     "NANI": 0,
-    "ACC_CMD": accel_cmd if accel_req else 0,
+    "ACC_CMD": (set_speed * 0.036) if enabled else 0,
   }
 
   dat = packer.make_can_msg("ACC_CMD_HUD", 0, values)[2]

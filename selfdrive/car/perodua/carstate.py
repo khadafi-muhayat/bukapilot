@@ -24,6 +24,9 @@ class CarState(CarStateBase):
     self.cruise_speed_counter = 0
     self.acttrGas = 0
 
+    self.is_plus_btn_latch = False
+    self.is_minus_btn_latch = False
+
   def update(self, cp):
     ret = car.CarState.new_message()
 
@@ -106,6 +109,7 @@ class CarState(CarStateBase):
       ret.cruiseState.available = True
       ret.cruiseState.nonAdaptive = False
       ret.cruiseState.speed = self.cruise_speed
+      ret.standstill = ret.vEgoRaw < (5 * CV.KPH_TO_MS)
 
       if self.is_cruise_latch:
         # pedal disengage
@@ -130,9 +134,34 @@ class CarState(CarStateBase):
     else:
       ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
       ret.cruiseState.nonAdaptive = False
-      ret.cruiseState.speed = cp.vl["ACC_CMD_HUD"]["SET_SPEED"] * CV.KPH_TO_MS
-      if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
-        self.is_cruise_latch = True
+#      ret.cruiseState.speed = cp.vl["ACC_CMD_HUD"]["SET_SPEED"] * CV.KPH_TO_MS
+      ret.cruiseState.speed = self.cruise_speed
+      #Alex: Set speed logic
+      if self.is_cruise_latch:
+        if bool(cp.vl["PCM_BUTTONS"]["RES_PLUS"]) and not self.is_plus_btn_latch:
+          self.cruise_speed += (5 * CV.KPH_TO_MS)
+          self.is_plus_btn_latch = True
+
+        elif not bool(cp.vl["PCM_BUTTONS"]["RES_PLUS"]):
+          self.is_plus_btn_latch = False
+
+        if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]) and not self.is_minus_btn_latch:
+          self.cruise_speed = max(5 * CV.KPH_TO_MS, self.cruise_speed - (5 * CV.KPH_TO_MS))
+          self.is_minus_btn_latch = True
+
+        elif not bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
+          self.is_minus_btn_latch = False
+
+      if not self.is_cruise_latch:
+        if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
+          self.cruise_speed = max(20 * CV.KPH_TO_MS, ret.vEgo + (5 * CV.KPH_TO_MS))
+          self.is_minus_btn_latch = True
+          self.is_cruise_latch = True
+          print("Engaged")
+
+      if bool(cp.vl["PCM_BUTTONS"]["CANCEL"]):
+        self.is_cruise_latch = False
+
       if ret.brakePressed:
         self.is_cruise_latch = False
 
@@ -215,7 +244,7 @@ class CarState(CarStateBase):
       ("LEFT_BACK_DOOR", "METER_CLUSTER", 1)
     ]
     checks = []
-    
+
     if CP.carFingerprint == CAR.ATIVA:
       signals.append(("BSM_CHIME","BSM", 0))
       signals.append(("STEER_ANGLE", "STEERING_MODULE", 0.))
@@ -223,6 +252,8 @@ class CarState(CarStateBase):
       signals.append(("STEERING_TORQUE", "EPS_SHAFT_TORQUE", 0.))
       signals.append(("ACC_RDY", "PCM_BUTTONS", 0))
       signals.append(("SET_MINUS", "PCM_BUTTONS", 0))
+      signals.append(("RES_PLUS","PCM_BUTTONS",0))
+      signals.append(("CANCEL","PCM_BUTTONS",0))
       signals.append(("LKAS_ENGAGED", "LKAS_HUD", 0))
       # signals.append(("STEER_CMD", "STEERING_LKAS", 0))
       signals.append(("STEER_REQ", "STEERING_LKAS", 0))

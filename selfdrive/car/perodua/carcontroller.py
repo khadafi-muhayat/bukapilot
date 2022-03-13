@@ -10,6 +10,9 @@ from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip, interp
 import cereal.messaging as messaging
 
+# debug
+from common.realtime import sec_since_boot
+
 class CarControllerParams():
   def __init__(self):
 
@@ -34,6 +37,11 @@ class CarController():
     self.params = CarControllerParams()
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.prev_state = False
+
+    #Alex: Brake reset:
+    self.prev_brake = False
+    self.prev_velocity_time_ms = int(sec_since_boot() * 1e3)
+    self.prev_velocity_mps = 0
 
   def update(self, enabled, CS, frame, actuators, visual_alert, pcm_cancel):
     can_sends = []
@@ -68,20 +76,18 @@ class CarController():
     if CS.CP.carFingerprint in ACC_CAR:
       # can_sends.append(perodua_create_accel_command(self.packer, accel_req, accel_cmd, accel_brake))
       accel_req = 1 if (pcm_cancel == 0) else 0
-      pcm_accel_cmd = actuators.gas - actuators.brake
-
-      print(actuators.gas, actuators.brake)
 
       if not enabled:
         accel_req = 0
 
       if (frame % 5) == 0:
+        apply_accel = clip(actuators.gas, 0., 1.)
         can_sends.append(perodua_create_brake_command(self.packer, enabled, actuators.brake, (frame/5) % 8))
 
         if self.prev_state != enabled:
-          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, True, pcm_accel_cmd, actuators.brake))
+          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, True, apply_accel, actuators.brake))
         else:
-          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, False, pcm_accel_cmd, actuators.brake))
+          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, False, apply_accel, actuators.brake))
         self.prev_state = enabled
 
     else:

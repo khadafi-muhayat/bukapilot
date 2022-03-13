@@ -88,7 +88,7 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.ATIVA:
       # min speed to enable ACC. if car can do stop and go or has gas interceptor,
       # then set enabling speed to a negative value, so it won't matter.
-      ret.minEnableSpeed = 0 * CV.KPH_TO_MS
+      ret.minEnableSpeed = -1
       ret.wheelbase = 2.525
       ret.steerRatio = 14.54
       ret.centerToFront = ret.wheelbase * 0.44
@@ -96,11 +96,13 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1035. + STD_CARGO_KG
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
-      ret.longitudinalTuning.kpV = [0.9, 0.9, 0.9]
+      ret.gasMaxBP = [0., 9., 35]
+      ret.gasMaxV = [0.3, 0.4, 0.5]
+      ret.longitudinalTuning.kpV = [0.5, 0.5, 0.5]
 
       ret.stoppingBrakeRate = 0.1  # reach stopping target smoothly
       ret.startingBrakeRate = 2.0  # release brakes fast
-      ret.startAccel = 1.2  # Accelerate from 0 faster
+      ret.startAccel = 1.0  # Accelerate from 0 faster
 
     else:
       ret.dashcamOnly = True
