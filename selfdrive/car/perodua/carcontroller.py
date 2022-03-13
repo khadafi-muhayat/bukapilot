@@ -39,8 +39,12 @@ class CarController():
     steer_max_interp = self.params.STEER_MAX
 
     # myvi has a more reactive EPS
-    if CS.CP.carFingerprint == CAR.MYVI or CS.CP.carFingerprint == CAR.BEZZA:
-      steer_max_interp = interp(CS.out.vEgo, [11, 22], [380, self.params.STEER_MAX])
+    if CS.CP.carFingerprint == CAR.MYVI:
+      steer_max_interp = interp(CA.out.vEgo, [11, 22], [380, self.params.STEER_MAX])
+    if CS.CP.carFingerprint == CAR.BEZZA:
+      steer_max_interp = interp(CS.out.vEgo, [11, 22], [400, self.params.STEER_MAX-200])
+    if CS.CP.carFingerprint == CAR.ARUZ:
+      steer_max_interp = interp(CS.out.vEgo, [11, 22], [380, self.params.STEER_MAX-230])
     if CS.CP.carFingerprint == CAR.AXIA:
       steer_max_interp = interp(CS.out.vEgo, [11, 26], [490, self.params.STEER_MAX])
 

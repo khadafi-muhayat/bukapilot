@@ -51,8 +51,8 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.8371
       ret.mass = 850. + STD_CARGO_KG
 
-      ret.lateralTuning.pid.kf = 0.0000917
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.30]]
+      ret.lateralTuning.pid.kf = 0.0000715
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.06], [0.32]]
       ret.longitudinalTuning.kpV = [0.8, 0.9, 1.0]
 
     elif candidate == CAR.MYVI:
@@ -67,21 +67,22 @@ class CarInterface(CarInterfaceBase):
 
     elif candidate == CAR.BEZZA:
       ret.wheelbase = 2.455
-      ret.steerRatio = 16.54
+      ret.steerRatio = 11.82
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.8371
       ret.mass = 940. + STD_CARGO_KG
 
-      ret.lateralTuning.pid.kf = 0.0000917
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.41]]
+      ret.lateralTuning.pid.kf = 0.0000918
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.05], [0.45]]
 
     elif candidate == CAR.ARUZ:
       ret.wheelbase = 2.685
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
-      tire_stiffness_factor = 0.6371
+      tire_stiffness_factor = 0.68371
       ret.mass = 1310. + STD_CARGO_KG
 
+      ret.lateralTuning.pid.kf = 0.0000917
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 

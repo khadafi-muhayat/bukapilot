@@ -10,7 +10,7 @@ from selfdrive.car.perodua.values import DBC, CAR
 # todo: clean this part up
 pedal_counter = 0
 pedal_press_state = 0
-PEDAL_COUNTER_THRES = 25
+PEDAL_COUNTER_THRES = 35
 PEDAL_UPPER_TRIG_THRES = 0.125
 PEDAL_NON_ZERO_THRES = 0.01
 
