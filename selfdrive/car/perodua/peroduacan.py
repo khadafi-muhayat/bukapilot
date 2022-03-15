@@ -87,18 +87,18 @@ def perodua_aeb_brake(packer, brake_amount):
 
   return packer.make_can_msg("FWD_CAM3", 0, values)
 
-def perodua_create_brake_command(packer, enabled, decel_cmd, idx):
-  decel_req = decel_cmd > 0.4
+def perodua_create_brake_command(packer, enabled, pump_delay1, pump_delay2, decel_cmd, idx):
+  decel_req = decel_cmd < 0
   #decel_req = enabled
-  print(decel_cmd)
+#  print(decel_cmd)
   #decel_cmd = -0.1
   values = {
     "COUNTER": idx,
-    "CMD1": 0.6 if (decel_req and enabled) else 0,
+    "CMD1": pump_delay1 if (decel_req and enabled) else 0,
     "BRAKE_REQ": decel_req,
-    "CMD2": -decel_cmd if (enabled and decel_req) else 0,
+    "CMD2": decel_cmd if (enabled and decel_req) else 0,
     "SET_ME_1_WHEN_ENGAGE": 1 if enabled else 0,
-    "BRAKE_CMD": -0.6 if (enabled and decel_req) else 0,
+    "BRAKE_CMD": pump_delay2 if (enabled and decel_req) else 0,
   }
 
   dat = packer.make_can_msg("ACC_BRAKE", 0, values)[2]
@@ -107,11 +107,11 @@ def perodua_create_brake_command(packer, enabled, decel_cmd, idx):
 
   return packer.make_can_msg("ACC_BRAKE", 0, values)
 
-def perodua_create_accel_command(packer, set_speed, enabled, rising, accel_cmd, accel_brake):
+def perodua_create_accel_command(packer, set_speed, enabled, set_distance, accel_cmd, accel_brake):
   #enabled= False
   values = {
     "SET_SPEED": set_speed * 3.6,
-    "FOLLOW_DISTANCE": 0,
+    "FOLLOW_DISTANCE": set_distance,
     "IS_LEAD": 1,
     "IS_ACCEL": 1 if (accel_brake <= 0.2 and enabled) else 0,
     "IS_DECEL": 1 if (accel_brake > 0.2 and enabled) else 0,

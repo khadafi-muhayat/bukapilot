@@ -132,6 +132,12 @@ class CarState(CarStateBase):
 
       ret.cruiseState.enabled = self.is_cruise_latch
     else:
+      ret.stockState.desSpeed = cp.vl["ACC_CMD_HUD"]["ACC_CMD"]
+      ret.stockState.brake1 = cp.vl["ACC_BRAKE"]["CMD2"]
+      ret.stockState.brake2 = cp.vl["ACC_BRAKE"]["CMD1"]
+      ret.stockState.brake3 = cp.vl["ACC_BRAKE"]["BRAKE_CMD"]
+      ret.stockState.setDistance = cp.vl["ACC_CMD_HUD"]["FOLLOW_DISTANCE"]
+
       ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
       ret.cruiseState.nonAdaptive = False
 #      ret.cruiseState.speed = cp.vl["ACC_CMD_HUD"]["SET_SPEED"] * CV.KPH_TO_MS
@@ -156,8 +162,8 @@ class CarState(CarStateBase):
         if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
           self.cruise_speed = max(20 * CV.KPH_TO_MS, ret.vEgo + (5 * CV.KPH_TO_MS))
           self.is_minus_btn_latch = True
+#          self.cruise_speed = 0
           self.is_cruise_latch = True
-          print("Engaged")
 
       if bool(cp.vl["PCM_BUTTONS"]["CANCEL"]):
         self.is_cruise_latch = False
@@ -252,29 +258,22 @@ class CarState(CarStateBase):
       signals.append(("STEERING_TORQUE", "EPS_SHAFT_TORQUE", 0.))
       signals.append(("ACC_RDY", "PCM_BUTTONS", 0))
       signals.append(("SET_MINUS", "PCM_BUTTONS", 0))
-      signals.append(("RES_PLUS","PCM_BUTTONS",0))
-      signals.append(("CANCEL","PCM_BUTTONS",0))
+      signals.append(("RES_PLUS","PCM_BUTTONS", 0))
+      signals.append(("CANCEL","PCM_BUTTONS", 0))
       signals.append(("LKAS_ENGAGED", "LKAS_HUD", 0))
-      # signals.append(("STEER_CMD", "STEERING_LKAS", 0))
+      signals.append(("ACC_CMD", "ACC_CMD_HUD", 0))
+      signals.append(("FOLLOW_DISTANCE", "ACC_CMD_HUD", 0))
+      signals.append(("CMD2", "ACC_BRAKE", 0))
+      signals.append(("CMD1", "ACC_BRAKE", 0))
+      signals.append(("BRAKE_CMD", "ACC_BRAKE", 0))
       signals.append(("STEER_REQ", "STEERING_LKAS", 0))
       signals.append(("SET_SPEED", "ACC_CMD_HUD", 0))
       signals.append(("LDA_ALERT", "LKAS_HUD", 0))
-      # Things ativa dont have
-      # ("STEER_FRACTION", "STEER_ANGLE_SENSOR", 0),
-      # ("STEER_RATE", "STEER_ANGLE_SENSOR", 0),
-      # ("CRUISE_ACTIVE", "PCM_CRUISE", 0),
-      # ("CRUISE_STATE", "PCM_CRUISE", 0),
-      # ("GAS_RELEASED", "PCM_CRUISE", 1),
-      # ("STEER_TORQUE_DRIVER", "STEER_TORQUE_SENSOR", 0),
-      # ("TURN_SIGNALS", "STEERING_LEVERS", 3),   # 3 is no blinkers
-      # ("LKA_STATE", "EPS_STATUS", 0),
-      # ("AUTO_HIGH_BEAM", "LIGHT_STALK", 0),
     else:
       signals.append(("MAIN_TORQUE", "STEERING_TORQUE", 0))
       signals.append(("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.))
       signals.append(("AEB_ALARM", "FWD_CAM3", 0))
       signals.append(("WHEELSPEED_B", "WHEEL_SPEED", 0.))
-    
 
     # todo: make it such that enforce_checks=True
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0, enforce_checks=False)

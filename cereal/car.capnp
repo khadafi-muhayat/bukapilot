@@ -170,6 +170,9 @@ struct CarState {
   # cruise state
   cruiseState @10 :CruiseState;
 
+  # stock states
+  stockState @37 : StockState;
+
   # gear
   gearShifter @14 :GearShifter;
 
@@ -193,6 +196,14 @@ struct CarState {
   # blindspot sensors
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
+
+  struct StockState {
+    desSpeed @0 :Float32;
+    brake1 @1 :Float32;
+    brake2 @2 :Float32;
+    brake3 @3 :Float32;
+    setDistance @4 :Int16;
+  }
 
   struct WheelSpeeds {
     # optional wheel speeds

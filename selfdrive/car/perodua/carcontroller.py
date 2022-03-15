@@ -36,7 +36,6 @@ class CarController():
     self.brake_pressed = True
     self.params = CarControllerParams()
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
-    self.prev_state = False
 
     #Alex: Brake reset:
     self.prev_brake = False
@@ -80,16 +79,31 @@ class CarController():
       if not enabled:
         accel_req = 0
 
-      if (frame % 5) == 0:
+#      print(int(sec_since_boot() *1e3), CS.out.vEgo, actuators.brake)
+      #Alex: Standstill Brake Reset
+#      if CS.out.standstill:
+#        if actuators.brake > 0:
+#        if enabled:
+#          actuators.brake = 0.1
+#          self.prev_brake = True
+
+#        if (int(sec_since_boot() * 1e3) - self.prev_velocity_time_ms) >= 50:
+#          if (CS.out.vEgo > self.prev_velocity_mps) and actuators.brake > 0 and self.prev_brake:
+#          print("Reset")
+#          actuators.brake = 0
+#          self.prev_brake = False
+
+ #         self.prev_velocity_time_ms = int(sec_since_boot() * 1e3)
+ #         self.prev_velocity_mps = CS.out.vEgo
+
+      if (frame % 3) == 0:
         apply_accel = clip(actuators.gas, 0., 1.)
-        can_sends.append(perodua_create_brake_command(self.packer, enabled, actuators.brake, (frame/5) % 8))
-
-        if self.prev_state != enabled:
-          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, True, apply_accel, actuators.brake))
+        #can_sends.append(perodua_create_brake_command(self.packer, enabled, CS.out.stockState.brake2, CS.out.stockState.brake3, actuators.brake, (frame/5) % 8))
+        can_sends.append(perodua_create_brake_command(self.packer, enabled, CS.out.stockState.brake2, CS.out.stockState.brake3, CS.out.stockState.brake1, (frame/5) % 8))
+        if (CS.out.vEgo < 8.5):
+          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, 1, apply_accel, actuators.brake))
         else:
-          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, False, apply_accel, actuators.brake))
-        self.prev_state = enabled
-
+          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, CS.out.stockState.setDistance, CS.out.stockState.desSpeed, actuators.brake))
     else:
       # gas
       if (frame % self.params.GAS_STEP) == 0:
