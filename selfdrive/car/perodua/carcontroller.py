@@ -58,13 +58,13 @@ class CarController():
     apply_steer = apply_std_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, self.params)
     self.steer_rate_limited = ( new_steer != apply_steer ) and (apply_steer != 0)
 
-    reduce_fighting_torque = ((CS.out.vEgo < LANE_CHANGE_SPEED_MIN) and (CS.out.leftBlinker != CS.out.rightBlinker))
-    if reduce_fighting_torque:
-      apply_steer = apply_steer / self.params.STEER_REDUCE_FACTOR
-
-    self.steering_direction = True if (apply_steer >= 0) else False
-
     if CS.CP.carFingerprint in NOT_CAN_CONTROLLED:
+
+      reduce_fighting_torque = ((CS.out.vEgo < LANE_CHANGE_SPEED_MIN) and (CS.out.leftBlinker != CS.out.rightBlinker))
+      if reduce_fighting_torque:
+        apply_steer = apply_steer / self.params.STEER_REDUCE_FACTOR
+      self.steering_direction = True if (apply_steer >= 0) else False
+
       can_sends.append(create_steer_command(self.packer, apply_steer, self.steering_direction, enabled, frame))
     else:
       if (frame % 2) == 0:
@@ -94,16 +94,22 @@ class CarController():
 #          self.prev_brake = False
 
  #         self.prev_velocity_time_ms = int(sec_since_boot() * 1e3)
- #         self.prev_velocity_mps = CS.out.vEgo
+ #         self.prev_velocity_mps = CS.out.vEgo 
 
-      if (frame % 3) == 0:
-        apply_accel = clip(actuators.gas, 0., 1.)
-        #can_sends.append(perodua_create_brake_command(self.packer, enabled, CS.out.stockState.brake2, CS.out.stockState.brake3, actuators.brake, (frame/5) % 8))
-        can_sends.append(perodua_create_brake_command(self.packer, enabled, CS.out.stockState.brake2, CS.out.stockState.brake3, CS.out.stockState.brake1, (frame/5) % 8))
-        if (CS.out.vEgo < 8.5):
-          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, 1, apply_accel, actuators.brake))
-        else:
-          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, CS.out.stockState.setDistance, CS.out.stockState.desSpeed, actuators.brake))
+      if (frame % 5) == 0:
+        apply_brake = actuators.brake - actuators.gas
+        print(actuators.brake, actuators.gas)
+
+        can_sends.append(perodua_create_accel_command(self.packer, CS.out.vEgo, CS.out.cruiseState.speed, enabled, CS.out.stockState.setDistance, CS.out.stockState.desSpeed, apply_brake))
+        can_sends.append(perodua_create_brake_command(self.packer, enabled, 0.2, -0.2, apply_brake, (frame/5) % 8))
+
+
+#        if (CS.out.vEgo < 8.3):
+#          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, 1, apply_accel, actuators.brake))
+#          can_sends.append(perodua_create_brake_command(self.packer, enabled, 0.8, -0.8, -actuators.brake, (frame/5) % 8))
+#        else:
+#          can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed, enabled, CS.out.stockState.setDistance, CS.out.stockState.desSpeed, CS.out.stockState.brake1))
+#        can_sends.append(perodua_create_brake_command(self.packer, enabled, CS.out.stockState.brake2, CS.out.stockState.brake3, CS.out.stockState.brake1, (frame/5) % 8))
     else:
       # gas
       if (frame % self.params.GAS_STEP) == 0:

@@ -96,13 +96,11 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1035. + STD_CARGO_KG
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
-      ret.gasMaxBP = [0., 9., 35]
-      ret.gasMaxV = [0.3, 0.4, 0.5]
-      ret.longitudinalTuning.kpV = [0.5, 0.5, 0.5]
+      ret.longitudinalTuning.kpV = [1.2, 1.2, 1.2]
+      ret.longitudinalTuning.kiV = [0.3, 0.3, 0.3]
 
-      ret.stoppingBrakeRate = 0.1  # reach stopping target smoothly
-      ret.startingBrakeRate = 2.0  # release brakes fast
-      ret.startAccel = 1.0  # Accelerate from 0 faster
+      ret.stoppingBrakeRate = 0.2  # reach stopping target smoothly
+      ret.startingBrakeRate = 3.0  # release brakes fast
 
     else:
       ret.dashcamOnly = True

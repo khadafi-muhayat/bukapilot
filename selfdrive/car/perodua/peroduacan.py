@@ -1,5 +1,6 @@
-from common.numpy_fast import clip
+from common.numpy_fast import clip, interp
 from cereal import car
+from selfdrive.config import Conversions as CV
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
@@ -72,7 +73,6 @@ def perodua_create_gas_command(packer, gas_amount, enable, idx):
     values["GAS_COMMAND2"] = gas_amount
 
   dat = packer.make_can_msg("GAS_COMMAND", 0, values)[2]
-
   checksum = crc8_interceptor(dat[:-1])
   values["CHECKSUM_PEDAL"] = checksum
 
@@ -88,17 +88,19 @@ def perodua_aeb_brake(packer, brake_amount):
   return packer.make_can_msg("FWD_CAM3", 0, values)
 
 def perodua_create_brake_command(packer, enabled, pump_delay1, pump_delay2, decel_cmd, idx):
-  decel_req = decel_cmd < 0
-  #decel_req = enabled
-#  print(decel_cmd)
+  decel_req = decel_cmd > 0.2
   #decel_cmd = -0.1
+
+  pump_speed = interp(decel_cmd, [0., 0.8], [0.4, 1.2])
   values = {
     "COUNTER": idx,
-    "CMD1": pump_delay1 if (decel_req and enabled) else 0,
+    #"CMD1": pump_delay1 if (decel_req and enabled) else 0,
+    "CMD1": pump_speed if (decel_req and enabled) else 0,
     "BRAKE_REQ": decel_req,
-    "CMD2": decel_cmd if (enabled and decel_req) else 0,
+    "CMD2": (-1* decel_cmd) if (enabled and decel_req) else 0,
     "SET_ME_1_WHEN_ENGAGE": 1 if enabled else 0,
-    "BRAKE_CMD": pump_delay2 if (enabled and decel_req) else 0,
+    #"BRAKE_CMD": pump_delay2 if (enabled and decel_req) else 0,
+    "BRAKE_CMD": (-1* pump_speed) if (enabled and decel_req) else 0,
   }
 
   dat = packer.make_can_msg("ACC_BRAKE", 0, values)[2]
@@ -107,20 +109,32 @@ def perodua_create_brake_command(packer, enabled, pump_delay1, pump_delay2, dece
 
   return packer.make_can_msg("ACC_BRAKE", 0, values)
 
-def perodua_create_accel_command(packer, set_speed, enabled, set_distance, accel_cmd, accel_brake):
-  #enabled= False
+def perodua_create_accel_command(packer, v_ego, set_speed, enabled, set_distance, lead_speed, brake_amt):
+
+  # accel limiter
+  if(v_ego >= set_speed):
+    acc_des_speed = (set_speed * 0.036)
+  elif(set_speed - v_ego > 0.01):
+    acc_des_speed = (v_ego * 0.036 + 0.01)
+  else:
+    acc_des_speed = (v_ego * 0.036 + (set_speed - v_ego))
+
+  acc_des_speed = acc_des_speed * (1 - brake_amt * 0.45)
+  is_braking = brake_amt > 0.2
+
+#  print(acc_des_speed, brake_amt)
   values = {
     "SET_SPEED": set_speed * 3.6,
     "FOLLOW_DISTANCE": set_distance,
     "IS_LEAD": 1,
-    "IS_ACCEL": 1 if (accel_brake <= 0.2 and enabled) else 0,
-    "IS_DECEL": 1 if (accel_brake > 0.2 and enabled) else 0,
+    "IS_ACCEL": (not is_braking) and enabled,
+    "IS_DECEL": is_braking and enabled,
     "SET_ME_1_2": 1,
     "SET_ME_1": 1,
-    "SET_0_WHEN_ENGAGE": 0 if enabled else 1,
-    "SET_1_WHEN_ENGAGE": 1 if enabled else 0,
+    "SET_0_WHEN_ENGAGE": not enabled,
+    "SET_1_WHEN_ENGAGE": enabled,
     "NANI": 0,
-    "ACC_CMD": (set_speed * 0.036) if enabled else 0,
+    "ACC_CMD": acc_des_speed if enabled else 0,
   }
 
   dat = packer.make_can_msg("ACC_CMD_HUD", 0, values)[2]
