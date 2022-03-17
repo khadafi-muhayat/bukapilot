@@ -96,11 +96,12 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1035. + STD_CARGO_KG
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
-      ret.longitudinalTuning.kpV = [1.2, 1.2, 1.2]
-      ret.longitudinalTuning.kiV = [0.3, 0.3, 0.3]
+      ret.lateralTuning.pid.kf = 0.0000115
+      ret.longitudinalTuning.kpV = [1.5, 1.5, 1.5]
+      ret.longitudinalTuning.kiV = [0.2, 0.2, 0.2]
 
-      ret.stoppingBrakeRate = 0.2  # reach stopping target smoothly
-      ret.startingBrakeRate = 3.0  # release brakes fast
+      ret.stoppingBrakeRate = 4.8  # reach stopping target smoothly
+      ret.startingBrakeRate = 0.3  # release brakes fast
 
     else:
       ret.dashcamOnly = True
@@ -145,8 +146,7 @@ class CarInterface(CarInterfaceBase):
   # pass in a car.CarControl to be called at 100hz
   def apply(self, c):
 
-    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators,
-                               c.hudControl.visualAlert, c.cruiseControl.cancel)
-
+    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators, c.hudControl.leadVisible, c.cruiseControl.cancel, c.cruiseControl.speedOverride)
+    print( c.cruiseControl.speedOverride*3.6)
     self.frame += 1
     return can_sends

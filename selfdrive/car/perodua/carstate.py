@@ -57,6 +57,9 @@ class CarState(CarStateBase):
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
     # todo: let gas pressed legit
+#    if self.CP.carFingerprint == CAR.ATIVA:
+#      ret.gasPressed = not bool(cp.vl["PCM_BUTTONS"]['PEDAL_DEPRESSED'])
+#    else:
     ret.gasPressed = ret.gas > 1.0
     self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) # KommuActuator gas, read when stock pedal is being intercepted
     if self.acttrGas < 0:
@@ -132,12 +135,7 @@ class CarState(CarStateBase):
 
       ret.cruiseState.enabled = self.is_cruise_latch
     else:
-      ret.stockState.desSpeed = cp.vl["ACC_CMD_HUD"]["ACC_CMD"]
-      ret.stockState.brake1 = cp.vl["ACC_BRAKE"]["CMD2"]
-      ret.stockState.brake2 = cp.vl["ACC_BRAKE"]["CMD1"]
-      ret.stockState.brake3 = cp.vl["ACC_BRAKE"]["BRAKE_CMD"]
       ret.stockState.setDistance = cp.vl["ACC_CMD_HUD"]["FOLLOW_DISTANCE"]
-
       ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
       ret.cruiseState.nonAdaptive = False
 #      ret.cruiseState.speed = cp.vl["ACC_CMD_HUD"]["SET_SPEED"] * CV.KPH_TO_MS
@@ -260,12 +258,10 @@ class CarState(CarStateBase):
       signals.append(("SET_MINUS", "PCM_BUTTONS", 0))
       signals.append(("RES_PLUS","PCM_BUTTONS", 0))
       signals.append(("CANCEL","PCM_BUTTONS", 0))
+      signals.append(("PEDAL_DEPRESSED","PCM_BUTTONS", 0))
       signals.append(("LKAS_ENGAGED", "LKAS_HUD", 0))
       signals.append(("ACC_CMD", "ACC_CMD_HUD", 0))
       signals.append(("FOLLOW_DISTANCE", "ACC_CMD_HUD", 0))
-      signals.append(("CMD2", "ACC_BRAKE", 0))
-      signals.append(("CMD1", "ACC_BRAKE", 0))
-      signals.append(("BRAKE_CMD", "ACC_BRAKE", 0))
       signals.append(("STEER_REQ", "STEERING_LKAS", 0))
       signals.append(("SET_SPEED", "ACC_CMD_HUD", 0))
       signals.append(("LDA_ALERT", "LKAS_HUD", 0))
