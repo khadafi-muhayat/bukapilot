@@ -90,15 +90,18 @@ class CarInterface(CarInterfaceBase):
       # then set enabling speed to a negative value, so it won't matter.
       ret.minEnableSpeed = -1
       ret.wheelbase = 2.525
-      ret.steerRatio = 14.54
+      ret.steerRatio = 11.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1035. + STD_CARGO_KG
 
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
-      ret.lateralTuning.pid.kf = 0.0000115
-      ret.longitudinalTuning.kpV = [1.5, 1.5, 1.5]
-      ret.longitudinalTuning.kiV = [0.2, 0.2, 0.2]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.095], [0.19]]
+      ret.lateralTuning.pid.kf = 0.000007
+
+      ret.longitudinalTuning.kpBP = [0., 6]
+      ret.longitudinalTuning.kiBP = [0., 6]
+      ret.longitudinalTuning.kpV = [6.4, 5.5]
+      ret.longitudinalTuning.kiV = [5.2, 4.2]
 
       ret.stoppingBrakeRate = 4.8  # reach stopping target smoothly
       ret.startingBrakeRate = 0.3  # release brakes fast
@@ -128,25 +131,13 @@ class CarInterface(CarInterfaceBase):
     events = self.create_common_events(ret)
     ret.events = events.to_msg()
 
-    # Alex Comments: might need these if ativa have low engage limit. test first
-    # if self.CS.low_speed_lockout and self.CP.openpilotLongitudinalControl:
-    #   events.add(EventName.lowSpeedLockout)
-    # if ret.vEgo < self.CP.minEnableSpeed and self.CP.openpilotLongitudinalControl:
-    #   events.add(EventName.belowEngageSpeed)
-    #   if c.actuators.gas > 0.1:
-    #     # some margin on the actuator to not false trigger cancellation while stopping
-    #     events.add(EventName.speedTooLow)
-    #   if ret.vEgo < 0.001:
-    #     # while in standstill, send a user alert
-    #     events.add(EventName.manualRestart)
-
     self.CS.out = ret.as_reader()
     return self.CS.out
 
   # pass in a car.CarControl to be called at 100hz
   def apply(self, c):
 
-    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators, c.hudControl.leadVisible, c.cruiseControl.cancel, c.cruiseControl.speedOverride)
-    print( c.cruiseControl.speedOverride*3.6)
+    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators, c.hudControl.leadVisible, c.hudControl.rightLaneVisible, c.hudControl.leftLaneVisible, c.cruiseControl.cancel, c.cruiseControl.speedOverride)
+
     self.frame += 1
     return can_sends

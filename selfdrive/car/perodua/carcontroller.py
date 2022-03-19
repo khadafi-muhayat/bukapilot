@@ -3,7 +3,7 @@ from selfdrive.car import make_can_msg, apply_std_steer_torque_limits
 from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, \
                                              perodua_aeb_brake, create_can_steer_command, \
                                              perodua_create_accel_command, \
-                                             perodua_create_brake_command
+                                             perodua_create_brake_command, perodua_create_hud
 from selfdrive.car.perodua.values import ACC_CAR, CAR, DBC, NOT_CAN_CONTROLLED
 from selfdrive.controls.lib.lateral_planner import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
@@ -42,7 +42,7 @@ class CarController():
     self.prev_velocity_time_ms = int(sec_since_boot() * 1e3)
     self.prev_velocity_mps = 0
 
-  def update(self, enabled, CS, frame, actuators, lead_visible, pcm_cancel, v_target):
+  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, v_target):
     can_sends = []
 
     # generate steering command
@@ -73,7 +73,6 @@ class CarController():
     self.last_steer = apply_steer
 
     if CS.CP.carFingerprint in ACC_CAR:
-      # can_sends.append(perodua_create_accel_command(self.packer, accel_req, accel_cmd, accel_brake))
       accel_req = 1 if (pcm_cancel == 0) else 0
 
       if not enabled:
@@ -85,6 +84,7 @@ class CarController():
 
         can_sends.append(perodua_create_accel_command(self.packer, CS.out.vEgo, CS.out.cruiseState.speed, CS.out.cruiseState.available, enabled, CS.out.stockState.setDistance, lead_visible, v_target, apply_brake))
         can_sends.append(perodua_create_brake_command(self.packer, enabled, apply_brake, (frame/5) % 8))
+        can_sends.append(perodua_create_hud(self.packer, CS.out.cruiseState.available, enabled, llane_visible, rlane_visible))
 
     else:
       # gas

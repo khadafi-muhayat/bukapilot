@@ -88,8 +88,8 @@ def perodua_aeb_brake(packer, brake_amount):
   return packer.make_can_msg("FWD_CAM3", 0, values)
 
 def perodua_create_brake_command(packer, enabled, decel_cmd, idx):
-  decel_req = decel_cmd > 0.2
-  pump_speed = interp(decel_cmd, [0., 0.8], [0.4, 1.2])
+  decel_req = decel_cmd > 0.0
+  pump_speed = interp(decel_cmd, [0., 0.8], [0.4, 1.0])
 
   values = {
     "COUNTER": idx,
@@ -120,7 +120,7 @@ def perodua_create_accel_command(packer, v_ego, set_speed, acc_rdy, enabled, set
   # dont release gas at low speed to prevent rocking
   if(v_ego > 8):
     acc_des_speed = acc_des_speed * (1 - brake_amt * 0.25)
-  is_braking = brake_amt > 0.2
+  is_braking = brake_amt > 0.0
 
 #  print(acc_des_speed, brake_amt)
   values = {
@@ -141,4 +141,22 @@ def perodua_create_accel_command(packer, v_ego, set_speed, acc_rdy, enabled, set
   values["CHECKSUM"] = crc
 
   return packer.make_can_msg("ACC_CMD_HUD", 0, values)
+
+def perodua_create_hud(packer, lkas_rdy, enabled, llane_visible, rlane_visible):
+
+  values = {
+    "LKAS_SET": lkas_rdy,
+    "LKAS_ENGAGED": enabled,
+    "LDA_ALERT": 0,
+    "LANE_RIGHT_DETECT": rlane_visible,
+    "LANE_LEFT_DETECT": llane_visible,
+    "SET_ME_X02": 0x2,
+  }
+
+  dat = packer.make_can_msg("LKAS_HUD", 0, values)[2]
+  crc = (perodua_acc_checksum(0x274, dat[:-1]))
+  values["CHECKSUM"] = crc
+
+  return packer.make_can_msg("LKAS_HUD", 0, values)
+
 
