@@ -48,7 +48,7 @@ class CarState(CarStateBase):
                      cp.vl["METER_CLUSTER"]['RIGHT_BACK_DOOR'],
                      cp.vl["METER_CLUSTER"]['LEFT_BACK_DOOR']])
 
-    ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
+    ret.seatbeltUnlatched = False
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
     disengage = ret.doorOpen or ret.seatbeltUnlatched
     if disengage:
