@@ -3,6 +3,10 @@
 #include <cmath>
 
 #include <QDebug>
+#include <QPixmap>
+#include <QIcon>
+#include <QFont>
+#include <QSize>
 
 #include "selfdrive/common/timing.h"
 #include "selfdrive/ui/qt/util.h"
@@ -33,9 +37,15 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
 
   stacked_layout->addWidget(split_wrapper);
 
+  //Kommu Addons
+  addons = new OnroadAddons(this);
+  main_layout->addWidget(addons);
+
   alerts = new OnroadAlerts(this);
   alerts->setAttribute(Qt::WA_TransparentForMouseEvents, true);
   stacked_layout->addWidget(alerts);
+  QObject::connect(addons, &OnroadAddons::openSettings,this,&OnroadWindow::openSettings);
+  main_layout->addWidget(alerts);
 
   // setup stacking order
   alerts->raise();
@@ -171,6 +181,9 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
 OnroadHud::OnroadHud(QWidget *parent) : QWidget(parent) {
   engage_img = loadPixmap("../assets/img_chffr_wheel.png", {img_size, img_size});
   dm_img = loadPixmap("../assets/img_driver_face.png", {img_size, img_size});
+  settings_img = loadPixmap("../assets/kommu/Settings.png", {img_size, img_size});
+
+  temperatureUnit = "C";
 
   connect(this, &OnroadHud::valueChanged, [=] { update(); });
 }
@@ -188,12 +201,15 @@ void OnroadHud::updateState(const UIState &s) {
   QString maxspeed_str = cruise_set ? QString::number(std::nearbyint(maxspeed)) : "N/A";
   float cur_speed = std::max(0.0, sm["carState"].getCarState().getVEgo() * (s.scene.is_metric ? MS_TO_KPH : MS_TO_MPH));
 
+  const float temp_str = sm["deviceState"].getDeviceState().getAmbientTempC();
+
   setProperty("is_cruise_set", cruise_set);
   setProperty("speed", QString::number(std::nearbyint(cur_speed)));
   setProperty("maxSpeed", maxspeed_str);
   setProperty("speedUnit", s.scene.is_metric ? "km/h" : "mph");
   setProperty("hideDM", cs.getAlertSize() != cereal::ControlsState::AlertSize::NONE);
   setProperty("status", s.status);
+  setProperty("temperature", QString::number(std::nearbyint(temp_str)));
 
   // update engageability and DM icons at 2Hz
   if (sm.frame % (UI_FREQ / 2) == 0) {
@@ -243,9 +259,29 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
 
   // dm icon
   if (!hideDM) {
-    drawIcon(p, radius / 2 + (bdr_s * 2), rect().bottom() - footer_h / 2,
+    drawIcon(p, rect().right() - radius / 2 - (bdr_s * 2), rect().bottom() - footer_h / 2,
              dm_img, QColor(0, 0, 0, 70), dmActive ? 1.0 : 0.2);
   }
+
+  // temperature
+  QRect temp_rc(rect().right() - bdr_s * 2 - 184,
+           rect().top() + int(bdr_s * 1.5),
+           184, 202);
+  p.setPen(QPen(QColor(0xff, 0xff, 0xff, 100), 10));
+  p.setBrush(QColor(0, 0, 0, 100));
+  p.drawRoundedRect(temp_rc, 20, 20);
+  p.setPen(Qt::NoPen);
+
+  configFont(p, "Open Sans", 48, "Regular");
+  drawText(p, temp_rc.center().x(), 118, "TEMP", 100);
+  configFont(p, "Open Sans", 88, "Bold");
+  drawText(p, temp_rc.center().x(), 212, temperature + temperatureUnit, 255);
+
+  // settings
+  const int settings_radius = 96;
+  const int settings_center_x = rect().left() + settings_radius + bdr_s * 2;
+  const int settings_center_y = rect().bottom() - footer_h / 2;
+  drawIcon(p, settings_center_x, settings_center_y, settings_img, QColor(0, 0, 0, 70), 1.0);
 }
 
 void OnroadHud::drawText(QPainter &p, int x, int y, const QString &text, int alpha) {
@@ -388,4 +424,17 @@ void NvgWindow::showEvent(QShowEvent *event) {
 
   ui_update_params(uiState());
   prev_draw_t = millis_since_boot();
+}
+
+OnroadAddons::OnroadAddons(QWidget *parent) : QWidget(parent) {
+
+  invi_btn = new QPushButton(parent);
+  invi_btn -> setStyleSheet("QPushButton { background-color: rgba(10, 0, 0, 0); }");;
+  invi_btn -> move(70,785);
+  invi_btn -> resize(200,200);
+
+  connect(invi_btn, &QPushButton::released, [=](){
+      emit openSettings();
+  });
+
 }

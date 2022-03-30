@@ -2,6 +2,10 @@
 
 #include <QFrame>
 #include <QMap>
+#include <QButtonGroup>
+#include <QPushButton>
+#include <QWidget>
+
 
 #include "selfdrive/common/params.h"
 #include "selfdrive/ui/ui.h"
@@ -22,13 +26,14 @@ public:
 
 signals:
   void openSettings();
+  void openTerms();
+  void openTraining();
   void valueChanged();
 
 public slots:
   void updateState(const UIState &s);
 
 protected:
-  void paintEvent(QPaintEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
   void drawMetric(QPainter &p, const QString &label, QColor c, int y);
 
@@ -43,7 +48,7 @@ protected:
     {cereal::DeviceState::NetworkType::CELL5_G, "5G"}
   };
 
-  const QRect settings_btn = QRect(50, 35, 200, 117);
+  const QRect settings_btn = QRect(0, 864, 225, 216); //using this to open settings for now due to time constraint
   const QColor good_color = QColor(255, 255, 255);
   const QColor warning_color = QColor(218, 202, 37);
   const QColor danger_color = QColor(201, 34, 49);
@@ -52,4 +57,7 @@ protected:
   ItemStatus connect_status, panda_status, temp_status;
   QString net_type;
   int net_strength = 0;
+
+  QButtonGroup *sidebar_btns;
+
 };

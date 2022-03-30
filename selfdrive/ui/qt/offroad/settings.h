@@ -24,7 +24,6 @@ protected:
 
 signals:
   void closeSettings();
-  void reviewTrainingGuide();
   void showDriverView();
 
 private:
@@ -32,6 +31,7 @@ private:
   QWidget *sidebar_widget;
   QButtonGroup *nav_btns;
   QStackedWidget *panel_widget;
+  QLabel *header_label;
 };
 
 class DevicePanel : public ListWidget {
@@ -39,7 +39,6 @@ class DevicePanel : public ListWidget {
 public:
   explicit DevicePanel(SettingsWindow *parent);
 signals:
-  void reviewTrainingGuide();
   void showDriverView();
 
 private slots:

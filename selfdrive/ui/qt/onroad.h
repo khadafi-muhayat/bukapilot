@@ -2,6 +2,8 @@
 
 #include <QStackedLayout>
 #include <QWidget>
+#include <QPushButton>
+#include <QLabel>
 
 #include "selfdrive/ui/qt/widgets/cameraview.h"
 #include "selfdrive/ui/ui.h"
@@ -14,6 +16,7 @@ class OnroadHud : public QWidget {
   Q_PROPERTY(QString speed MEMBER speed NOTIFY valueChanged);
   Q_PROPERTY(QString speedUnit MEMBER speedUnit NOTIFY valueChanged);
   Q_PROPERTY(QString maxSpeed MEMBER maxSpeed NOTIFY valueChanged);
+  Q_PROPERTY(QString temperature MEMBER temperature NOTIFY valueChanged);
   Q_PROPERTY(bool is_cruise_set MEMBER is_cruise_set NOTIFY valueChanged);
   Q_PROPERTY(bool engageable MEMBER engageable NOTIFY valueChanged);
   Q_PROPERTY(bool dmActive MEMBER dmActive NOTIFY valueChanged);
@@ -31,11 +34,14 @@ private:
 
   QPixmap engage_img;
   QPixmap dm_img;
+  QPixmap settings_img;
   const int radius = 192;
   const int img_size = (radius / 2) * 1.5;
   QString speed;
   QString speedUnit;
   QString maxSpeed;
+  QString temperature;
+  QString temperatureUnit;
   bool is_cruise_set = false;
   bool engageable = false;
   bool dmActive = false;
@@ -79,6 +85,22 @@ protected:
   double prev_draw_t = 0;
 };
 
+//widget for settings invisible button
+class OnroadAddons : public QWidget {
+  Q_OBJECT
+
+public:
+  OnroadAddons(QWidget* parent=0);
+
+signals:
+  void openSettings();
+
+private:
+  QPushButton *invi_btn;
+
+};
+
+
 // container for all onroad widgets
 class OnroadWindow : public QWidget {
   Q_OBJECT
@@ -96,8 +118,14 @@ private:
   QColor bg = bg_colors[STATUS_DISENGAGED];
   QWidget *map = nullptr;
   QHBoxLayout* split;
+  OnroadAddons *addons;
 
 private slots:
   void offroadTransition(bool offroad);
   void updateState(const UIState &s);
+
+signals:
+  void openSettings();
 };
+
+

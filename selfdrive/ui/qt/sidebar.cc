@@ -1,8 +1,12 @@
 #include "selfdrive/ui/qt/sidebar.h"
 
 #include <QMouseEvent>
+#include <QPushButton>
+#include <QPixmap>
+#include <QLabel>
 
 #include "selfdrive/ui/qt/util.h"
+#include "selfdrive/ui/qt/widgets/main_sidebar_buttons.h"
 
 void Sidebar::drawMetric(QPainter &p, const QString &label, QColor c, int y) {
   const QRect rect = {30, y, 240, label.contains("\n") ? 124 : 100};
@@ -26,16 +30,70 @@ void Sidebar::drawMetric(QPainter &p, const QString &label, QColor c, int y) {
 }
 
 Sidebar::Sidebar(QWidget *parent) : QFrame(parent) {
-  home_img = loadPixmap("../assets/images/button_home.png", {180, 180});
-  settings_img = loadPixmap("../assets/images/button_settings.png", settings_btn.size(), Qt::IgnoreAspectRatio);
+  QVBoxLayout *new_sidebar_layout = new QVBoxLayout(this);
+  QPixmap logo_pix("../assets/kommu/Logo.png");
+  QLabel *logo_lbl = new QLabel();
+
+  logo_lbl->resize(200,200);
+  logo_pix = logo_pix.scaled(logo_lbl->size(),Qt::KeepAspectRatio);
+  logo_lbl->setPixmap(logo_pix);
+  new_sidebar_layout->addWidget(logo_lbl);
+  new_sidebar_layout->setAlignment(logo_lbl,Qt::AlignHCenter);
+  QList<QString> btns = {
+    "Tutorial",
+    "T&C",
+    "Settings",
+  };
+
+  sidebar_btns = new QButtonGroup();
+
+  for (QString &btn_name:btns) {
+      QString img_dir = "../assets/kommu/";
+      img_dir.append(btn_name);
+      img_dir.append(".png");
+      const int padding = 75;
+      QPixmap pixmap(img_dir);
+      MainSidebarButton *main_sidebar_btn = new MainSidebarButton(btn_name,pixmap);
+      main_sidebar_btn->setCheckable(false);
+      main_sidebar_btn->setChecked(sidebar_btns->buttons().size() == 0);
+      main_sidebar_btn->setFixedHeight(250);
+      main_sidebar_btn->setStyleSheet(QString(R"(
+        QPushButton {
+          color: white;
+          border: none;
+          background: black;
+          font-size: 35px;
+          font-weight: 100;
+          padding-top: 50px;
+          padding-left: 150px;
+          padding-bottom: %1px;
+        }
+        QPushButton:checked {
+          background-color:rgb(30,30,30) ;
+        }
+      )").arg(padding));
+
+
+    sidebar_btns->addButton(main_sidebar_btn);
+    connect(sidebar_btns->button(-2),  &MainSidebarButton::released, [=]() {
+        emit openTraining();
+    });
+    connect(sidebar_btns->button(-3),  &MainSidebarButton::released, [=]() {
+        emit openTerms();
+    });
+    connect(sidebar_btns->button(-4),  &MainSidebarButton::released, [=]() {
+        emit openSettings();
+    });
+    new_sidebar_layout->addWidget(main_sidebar_btn);
+    new_sidebar_layout->setAlignment(main_sidebar_btn,Qt::AlignHCenter);
+
+  }
 
   connect(this, &Sidebar::valueChanged, [=] { update(); });
 
   setAttribute(Qt::WA_OpaquePaintEvent);
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
   setFixedWidth(300);
-
-  QObject::connect(uiState(), &UIState::uiUpdate, this, &Sidebar::updateState);
 }
 
 void Sidebar::mouseReleaseEvent(QMouseEvent *event) {
@@ -45,71 +103,5 @@ void Sidebar::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void Sidebar::updateState(const UIState &s) {
-  if (!isVisible()) return;
-
-  auto &sm = *(s.sm);
-
-  auto deviceState = sm["deviceState"].getDeviceState();
-  setProperty("netType", network_type[deviceState.getNetworkType()]);
-  int strength = (int)deviceState.getNetworkStrength();
-  setProperty("netStrength", strength > 0 ? strength + 1 : 0);
-
-  ItemStatus connectStatus;
-  auto last_ping = deviceState.getLastAthenaPingTime();
-  if (last_ping == 0) {
-    connectStatus = params.getBool("PrimeRedirected") ? ItemStatus{"NO\nPRIME", danger_color} : ItemStatus{"CONNECT\nOFFLINE", warning_color};
-  } else {
-    connectStatus = nanos_since_boot() - last_ping < 80e9 ? ItemStatus{"CONNECT\nONLINE", good_color} : ItemStatus{"CONNECT\nERROR", danger_color};
-  }
-  setProperty("connectStatus", QVariant::fromValue(connectStatus));
-
-  ItemStatus tempStatus = {"TEMP\nHIGH", danger_color};
-  auto ts = deviceState.getThermalStatus();
-  if (ts == cereal::DeviceState::ThermalStatus::GREEN) {
-    tempStatus = {"TEMP\nGOOD", good_color};
-  } else if (ts == cereal::DeviceState::ThermalStatus::YELLOW) {
-    tempStatus = {"TEMP\nOK", warning_color};
-  }
-  setProperty("tempStatus", QVariant::fromValue(tempStatus));
-
-  ItemStatus pandaStatus = {"VEHICLE\nONLINE", good_color};
-  if (s.scene.pandaType == cereal::PandaState::PandaType::UNKNOWN) {
-    pandaStatus = {"NO\nPANDA", danger_color};
-  } else if (s.scene.started && !sm["liveLocationKalman"].getLiveLocationKalman().getGpsOK()) {
-    pandaStatus = {"GPS\nSEARCHING", warning_color};
-  }
-  setProperty("pandaStatus", QVariant::fromValue(pandaStatus));
 }
 
-void Sidebar::paintEvent(QPaintEvent *event) {
-  QPainter p(this);
-  p.setPen(Qt::NoPen);
-  p.setRenderHint(QPainter::Antialiasing);
-
-  p.fillRect(rect(), QColor(57, 57, 57));
-
-  // static imgs
-  p.setOpacity(0.65);
-  p.drawPixmap(settings_btn.x(), settings_btn.y(), settings_img);
-  p.setOpacity(1.0);
-  p.drawPixmap(60, 1080 - 180 - 40, home_img);
-
-  // network
-  int x = 58;
-  const QColor gray(0x54, 0x54, 0x54);
-  for (int i = 0; i < 5; ++i) {
-    p.setBrush(i < net_strength ? Qt::white : gray);
-    p.drawEllipse(x, 196, 27, 27);
-    x += 37;
-  }
-
-  configFont(p, "Open Sans", 35, "Regular");
-  p.setPen(QColor(0xff, 0xff, 0xff));
-  const QRect r = QRect(50, 247, 100, 50);
-  p.drawText(r, Qt::AlignCenter, net_type);
-
-  // metrics
-  drawMetric(p, temp_status.first, temp_status.second, 338);
-  drawMetric(p, panda_status.first, panda_status.second, 496);
-  drawMetric(p, connect_status.first, connect_status.second, 654);
-}

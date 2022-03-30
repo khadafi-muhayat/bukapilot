@@ -10,28 +10,36 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
 
   homeWindow = new HomeWindow(this);
   main_layout->addWidget(homeWindow);
+
+  termsWindow = new TermsWindow(this);
+  main_layout->addWidget(termsWindow);
+
+  trainingWindow = new TrainingWindow(this);
+  main_layout->addWidget(trainingWindow);
+
+
+  QObject::connect(homeWindow, &HomeWindow::openTerms, [=]() {
+    main_layout->setCurrentWidget(termsWindow);
+  });
+  QObject::connect(termsWindow, &TermsWindow::closeTerms, [=]() {
+    main_layout->setCurrentWidget(homeWindow);
+  });
+  QObject::connect(homeWindow, &HomeWindow::openTraining, [=]() {
+    main_layout->setCurrentWidget(trainingWindow);
+  });
+  QObject::connect(trainingWindow, &TrainingWindow::closeTraining, [=]() {
+    main_layout->setCurrentWidget(homeWindow);
+  });
+
   QObject::connect(homeWindow, &HomeWindow::openSettings, this, &MainWindow::openSettings);
   QObject::connect(homeWindow, &HomeWindow::closeSettings, this, &MainWindow::closeSettings);
 
   settingsWindow = new SettingsWindow(this);
   main_layout->addWidget(settingsWindow);
   QObject::connect(settingsWindow, &SettingsWindow::closeSettings, this, &MainWindow::closeSettings);
-  QObject::connect(settingsWindow, &SettingsWindow::reviewTrainingGuide, [=]() {
-    onboardingWindow->showTrainingGuide();
-    main_layout->setCurrentWidget(onboardingWindow);
-  });
   QObject::connect(settingsWindow, &SettingsWindow::showDriverView, [=] {
     homeWindow->showDriverView(true);
   });
-
-  onboardingWindow = new OnboardingWindow(this);
-  main_layout->addWidget(onboardingWindow);
-  QObject::connect(onboardingWindow, &OnboardingWindow::onboardingDone, [=]() {
-    main_layout->setCurrentWidget(homeWindow);
-  });
-  if (!onboardingWindow->completed()) {
-    main_layout->setCurrentWidget(onboardingWindow);
-  }
 
   QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
     if (!offroad) {
@@ -39,9 +47,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     }
   });
   QObject::connect(&device, &Device::interactiveTimout, [=]() {
-    if (main_layout->currentWidget() == settingsWindow) {
-      closeSettings();
-    }
+    closeSettings();
   });
 
   // load fonts

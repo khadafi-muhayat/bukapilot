@@ -5,6 +5,7 @@
 #include <string>
 
 #include <QDebug>
+#include <QPixmap>
 
 #ifndef QCOM
 #include "selfdrive/ui/qt/offroad/networking.h"
@@ -22,6 +23,7 @@
 #include "selfdrive/ui/qt/widgets/scrollview.h"
 #include "selfdrive/ui/qt/widgets/ssh_keys.h"
 #include "selfdrive/ui/qt/widgets/toggle.h"
+#include "selfdrive/ui/qt/widgets/nav_buttons.h"
 #include "selfdrive/ui/ui.h"
 #include "selfdrive/ui/qt/util.h"
 #include "selfdrive/ui/qt/qt_window.h"
@@ -86,6 +88,54 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "../assets/offroad/icon_speed_limit.png",
     });
   }
+  toggles.push_back({
+    "OpenpilotEnabledToggle",
+    "Enable Bukapilot",
+    "Use the bukapilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature. Changing this setting takes effect when the car is powered off.",
+    "../assets/kommu/settings/kommu_steering_wheel_icon.png",
+  });
+  toggles.push_back({
+    "IsLdwEnabled",
+    "Enable Lane Departure Warnings",
+    "Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31mph (50kph).",
+    "../assets/kommu/settings/kommu_alert_sign.png",
+  });
+  toggles.push_back({
+    "IsRHD",
+    "Enable Right-Hand Drive",
+    "Allow bukapilot to obey left-hand traffic conventions and perform driver monitoring on right driver seat.",
+    "../assets/kommu/settings/kommu_steering_wheel_icon_inverted.png",
+  });
+  toggles.push_back({
+    "IsMetric",
+    "Use Metric System",
+    "Display speed in km/h instead of mp/h.",
+    "../assets/offroad/icon_metric.png",
+  });
+  toggles.push_back({
+    "CommunityFeaturesToggle",
+    "Enable Community Features",
+    "Use features from the open source community that are not maintained or supported by kommu.ai and have not been confirmed to meet the standard safety model. These features include community supported cars and community supported hardware. Be extra cautious when using these features",
+    "../assets/kommu/settings/kommu_developer_icon.png",
+  });
+  toggles.push_back({
+    "UploadRaw",
+    "Upload Raw Logs",
+    "Upload full logs and full resolution video by default while on WiFi. If not enabled, individual logs can be marked for upload at my.comma.ai/useradmin.",
+    "../assets/kommu/settings/kommu_upload_icon.png",
+  });
+  toggles.push_back({
+    "RecordFront",
+    "Record and Upload Driver Camera",
+    "Upload data from the driver facing camera and help improve the driver monitoring algorithm.",
+    "../assets/offroad/icon_monitoring.png",
+  });
+  toggles.push_back({
+    "EndToEndToggle",
+    "\U0001f96c Disable use of lanelines (Alpha) \U0001f96c",
+    "In this mode bukapilot will ignore lanelines and just drive how it thinks a human would.",
+    "../assets/offroad/icon_road.png",
+  });
 
   for (auto &[param, title, desc, icon] : toggles) {
     auto toggle = new ParamControl(param, title, desc, icon, this);
@@ -118,16 +168,6 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
     }
   });
   addItem(resetCalibBtn);
-
-  if (!params.getBool("Passive")) {
-    auto retrainingBtn = new ButtonControl("Review Training Guide", "REVIEW", "Review the rules, features, and limitations of openpilot");
-    connect(retrainingBtn, &ButtonControl::clicked, [=]() {
-      if (ConfirmationDialog::confirm("Are you sure you want to review the training guide?", this)) {
-        emit reviewTrainingGuide();
-      }
-    });
-    addItem(retrainingBtn);
-  }
 
   if (Hardware::TICI()) {
     auto regulatoryBtn = new ButtonControl("Regulatory", "VIEW", "");
@@ -227,6 +267,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
   osVersionLbl = new LabelControl("OS Version");
   versionLbl = new LabelControl("Version", "", QString::fromStdString(params.get("ReleaseNotes")).trimmed());
   lastUpdateLbl = new LabelControl("Last Update Check", "", "The last time openpilot successfully checked for an update. The updater only runs while the car is off.");
+
   updateBtn = new ButtonControl("Check for Update", "");
   connect(updateBtn, &ButtonControl::clicked, [=]() {
     if (params.getBool("IsOffroad")) {
@@ -339,6 +380,7 @@ QWidget *network_panel(QWidget *parent) {
 
 void SettingsWindow::showEvent(QShowEvent *event) {
   panel_widget->setCurrentIndex(0);
+  header_label->setText("Device");
   nav_btns->buttons()[0]->setChecked(true);
 }
 
@@ -347,37 +389,38 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   // setup two main layouts
   sidebar_widget = new QWidget;
   QVBoxLayout *sidebar_layout = new QVBoxLayout(sidebar_widget);
-  sidebar_layout->setMargin(0);
   panel_widget = new QStackedWidget();
   panel_widget->setStyleSheet(R"(
-    border-radius: 30px;
-    background-color: #292929;
+    border-radius: 1px;
+    background-color: #202020;
+  )");
+
+  //setup panel header
+  header_label = new QLabel;
+  header_label -> setStyleSheet(R"(
+    border-radius: 0.1px;
+    font-size: 70px;
+    font-weight:500;
+    padding-left: 40px;
+    background-color: #303030;
+    margin-bottom:-50px;
   )");
 
   // close button
-  QPushButton *close_btn = new QPushButton("×");
+  QPushButton *close_btn = new QPushButton("x");
   close_btn->setStyleSheet(R"(
-    QPushButton {
-      font-size: 140px;
-      padding-bottom: 20px;
-      font-weight: bold;
-      border 1px grey solid;
-      border-radius: 100px;
-      background-color: #292929;
-      font-weight: 400;
-    }
-    QPushButton:pressed {
-      background-color: #3B3B3B;
-    }
+    font-size: 90px;
+    font-family: Calibri;
+    border 0px black solid;
+    border-radius: 75px;
+    background-color: #000000;
   )");
-  close_btn->setFixedSize(200, 200);
-  sidebar_layout->addSpacing(45);
-  sidebar_layout->addWidget(close_btn, 0, Qt::AlignCenter);
-  QObject::connect(close_btn, &QPushButton::clicked, this, &SettingsWindow::closeSettings);
+  close_btn->setFixedSize(100, 100);
+  sidebar_layout->addWidget(close_btn, 0, Qt::AlignTop);
+  QObject::connect(close_btn, &QPushButton::released, this, &SettingsWindow::closeSettings);
 
   // setup panels
   DevicePanel *device = new DevicePanel(this);
-  QObject::connect(device, &DevicePanel::reviewTrainingGuide, this, &SettingsWindow::reviewTrainingGuide);
   QObject::connect(device, &DevicePanel::showDriverView, this, &SettingsWindow::showDriverView);
 
   QList<QPair<QString, QWidget *>> panels = {
@@ -392,22 +435,30 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   panels.push_back({"Navigation", map_panel});
   QObject::connect(map_panel, &MapPanel::closeSettings, this, &SettingsWindow::closeSettings);
 #endif
-
-  const int padding = panels.size() > 3 ? 25 : 35;
+  const int padding = panels.size() > 3 ? 35 : 55;
 
   nav_btns = new QButtonGroup(this);
   for (auto &[name, panel] : panels) {
-    QPushButton *btn = new QPushButton(name);
+
+    QString img_dir = "../assets/kommu/";
+    img_dir.append(name);
+    img_dir.append(".png");
+
+    QPixmap pixmap(img_dir);
+
+    NavButton *btn = new NavButton(name,pixmap);
     btn->setCheckable(true);
     btn->setChecked(nav_btns->buttons().size() == 0);
+    btn->setFixedHeight(175);
     btn->setStyleSheet(QString(R"(
       QPushButton {
         color: grey;
         border: none;
         background: none;
-        font-size: 65px;
+        font-size: 50px;
         font-weight: 500;
-        padding-top: %1px;
+        padding-top: 50px;
+        padding-left: 150px;
         padding-bottom: %1px;
       }
       QPushButton:checked {
@@ -419,7 +470,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     )").arg(padding));
 
     nav_btns->addButton(btn);
-    sidebar_layout->addWidget(btn, 0, Qt::AlignRight);
+    sidebar_layout->addWidget(btn, 0, Qt::AlignLeft);
 
     const int lr_margin = name != "Network" ? 50 : 0;  // Network panel handles its own margins
     panel->setContentsMargins(lr_margin, 25, lr_margin, 25);
@@ -427,19 +478,23 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     ScrollView *panel_frame = new ScrollView(panel, this);
     panel_widget->addWidget(panel_frame);
 
-    QObject::connect(btn, &QPushButton::clicked, [=, w = panel_frame]() {
+    QObject::connect(btn, &QPushButton::released, [=, w = panel_frame, n=name]() {
       btn->setChecked(true);
       panel_widget->setCurrentWidget(w);
+      header_label->setText(n);
     });
   }
-  sidebar_layout->setContentsMargins(50, 50, 100, 50);
+  sidebar_layout-> setSpacing(75);
+  sidebar_layout->setContentsMargins(25, 25, 100, 100);
 
   // main settings layout, sidebar + main panel
-  QHBoxLayout *main_layout = new QHBoxLayout(this);
+  QGridLayout *main_layout = new QGridLayout(this);
 
   sidebar_widget->setFixedWidth(500);
-  main_layout->addWidget(sidebar_widget);
-  main_layout->addWidget(panel_widget);
+  header_label->setFixedHeight(175);
+  main_layout->addWidget(sidebar_widget,0,0,2,1);
+  main_layout->addWidget(header_label,0,1);
+  main_layout->addWidget(panel_widget,1,1);
 
   setStyleSheet(R"(
     * {
