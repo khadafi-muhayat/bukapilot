@@ -37,14 +37,12 @@ def manager_init() -> None:
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
 
   default_params: List[Tuple[str, Union[str, bytes]]] = [
-    ("CommunityFeaturesToggle", "1"),
     ("CompletedTrainingVersion", "0"),
     ("HasAcceptedTerms", "0"),
     ("IsMetric", "1"),
     ("IsRHD", "1"),
     ("OpenpilotEnabledToggle", "1"),
     ("RecordFront", "1"),
-    ("UploadRaw", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

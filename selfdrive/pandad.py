@@ -12,7 +12,6 @@ from common.basedir import BASEDIR
 from common.params import Params
 from selfdrive.swaglog import cloudlog
 
-PANDA_FW_FN = os.path.join(PANDA_BASEDIR, "board", "obj", "icptr.bin.signed")
 
 def get_expected_signature(panda: Panda) -> bytes:
   fn = DEFAULT_H7_FW_FN if (panda.get_mcu_type() == MCU_TYPE_H7) else DEFAULT_FW_FN
