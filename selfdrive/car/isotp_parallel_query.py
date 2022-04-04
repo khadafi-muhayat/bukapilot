@@ -71,7 +71,7 @@ class IsoTpParallelQuery:
     messaging.drain_sock(self.logcan)
     self.msg_buffer = defaultdict(list)
 
-  def get_data(self, timeout, total_timeout=None):
+  def get_data(self, timeout, total_timeout=None, expect_rx=True):
     if total_timeout is None:
       total_timeout = 10 * timeout
 
@@ -101,7 +101,7 @@ class IsoTpParallelQuery:
     results = {}
     start_time = time.monotonic()
     last_response_time = start_time
-    while True:
+    while expect_rx:
       self.rx()
 
       if all(request_done.values()):
