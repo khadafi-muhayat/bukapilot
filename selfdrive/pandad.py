@@ -27,21 +27,39 @@ def flash_panda(panda_serial: str) -> Panda:
   panda = Panda(panda_serial)
 
   fw_signature = get_expected_signature(panda)
+  cloudlog.info("Connecting to panda")
+
+  while True:
+    # break on normal mode Panda
+    panda_list = Panda.list()
+    if len(panda_list) > 0:
+      cloudlog.info("Panda found, wait for 4 secs before connecting")
+      time.sleep(4)
+      panda = Panda(panda_list[0])
+      break
+
+    # flash on DFU mode Panda
+    panda_dfu = PandaDFU.list()
+    if len(panda_dfu) > 0:
+      cloudlog.info("Panda in DFU mode found, flashing recovery")
+      panda_dfu = PandaDFU(panda_dfu[0])
+      panda_dfu.recover()
+
+    time.sleep(1)
+
+  try:
+    serial = panda.get_serial()[0].decode("utf-8")
+  except Exception:
+    serial = None
 
   panda_version = "bootstub" if panda.bootstub else panda.get_version()
   panda_signature = b"" if panda.bootstub else panda.get_signature()
   cloudlog.warning(f"Panda {panda_serial} connected, version: {panda_version}, signature {panda_signature.hex()[:16]}, expected {fw_signature.hex()[:16]}")
 
-  if panda.bootstub or panda_signature != fw_signature:
+  if panda_signature != fw_signature:
     cloudlog.info("Panda firmware out of date, update required")
     panda.flash()
     cloudlog.info("Done flashing")
-
-  if panda.bootstub:
-    bootstub_version = panda.get_version()
-    cloudlog.info(f"Flashed firmware not booting, flashing development bootloader. Bootstub version: {bootstub_version}")
-    panda.recover()
-    cloudlog.info("Done flashing bootloader")
 
   if panda.bootstub:
     cloudlog.info("Panda still not booting, exiting")
