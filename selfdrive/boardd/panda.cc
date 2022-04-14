@@ -12,6 +12,8 @@
 #include "selfdrive/common/swaglog.h"
 #include "selfdrive/common/util.h"
 
+int freason = -1;
+
 static int init_usb_ctx(libusb_context **context) {
   assert(context != nullptr);
 
@@ -237,6 +239,7 @@ int Panda::usb_bulk_read(unsigned char endpoint, unsigned char* data, int length
       break; // timeout is okay to exit, recv still happened
     } else if (err == LIBUSB_ERROR_OVERFLOW) {
       comms_healthy = false;
+      freason = 1;
       LOGE_100("overflow got 0x%x", transferred);
     } else if (err != 0) {
       handle_usb_issue(err, __func__);
@@ -419,9 +422,14 @@ void Panda::can_send(capnp::List<cereal::CanData>::Reader can_data_list) {
 bool Panda::can_receive(std::vector<can_frame>& out_vec) {
   uint8_t data[RECV_SIZE];
   int recv = usb_bulk_read(0x81, (uint8_t*)data, RECV_SIZE);
+  /*
+  LOGE("RX SIZE: %d", recv);
+  if (comms_healthy) LOGE("comms_healthy");
+  else LOGE("unhealthy! freason %d", freason);
   if (!comms_healthy) {
     return false;
   }
+  */
   if (recv == RECV_SIZE) {
     LOGW("Panda receive buffer full");
   }
@@ -429,13 +437,19 @@ bool Panda::can_receive(std::vector<can_frame>& out_vec) {
   return (recv <= 0) ? true : unpack_can_buffer(data, recv, out_vec);
 }
 
+void EMERGENCY_DUMP(uint8_t *data, int size)
+{
+    int f = open("emerg.dump", O_WRONLY | O_CREAT | O_EXCL);
+    write(f, data, size);
+    close(f);
+}
+
 bool Panda::unpack_can_buffer(uint8_t *data, int size, std::vector<can_frame> &out_vec) {
   recv_buf.clear();
   for (int i = 0; i < size; i += USBPACKET_MAX_SIZE) {
     if (data[i] != i / USBPACKET_MAX_SIZE) {
-      LOGE("CAN: MALFORMED USB RECV PACKET");
-      comms_healthy = false;
-      return false;
+      size = i;
+      break;
     }
     int chunk_len = std::min(USBPACKET_MAX_SIZE, (size - i));
     recv_buf.insert(recv_buf.end(), &data[i + 1], &data[i + chunk_len]);
