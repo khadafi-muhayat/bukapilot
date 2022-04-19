@@ -47,6 +47,9 @@ DBC = {
   CAR.MYVI_PSD: dbc_dict('perodua_psd_pt', None),
 }
 
+BRAKE_SCALE = defaultdict(lambda: 1, {CAR.ATIVA: 2.9, CAR.MYVI_PSD: 2.6})
+GAS_SCALE = defaultdict(lambda: 1, {CAR.ATIVA: 1.2})
+
 NOT_CAN_CONTROLLED = set([CAR.ARUZ, CAR.AXIA, CAR.BEZZA, CAR.MYVI])
 
 ACC_CAR = set([CAR.ATIVA, CAR.MYVI_PSD])

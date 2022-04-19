@@ -18,25 +18,22 @@ class CarInterface(CarInterfaceBase):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "perodua"
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.perodua)]
+    ret.safetyConfigs[0].safetyParam = 1
+    ret.transmissionType = car.CarParams.TransmissionType.automatic
+    ret.radarOffCan = True
+    ret.enableApgs = False                 # advanced parking guidance system
+    ret.enableDsu = False                  # driving support unit
 
     #disableLong = Params().get("DisableBukapilotLongitudinal") == b'1'
-    ret.radarOffCan = True
 
     ret.steerRateCost = 0.7                # Lateral MPC cost on steering rate, higher value = sharper turn
     ret.steerLimitTimer = 0.1              # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque
-    ret.steerActuatorDelay = 0.48           # Steering wheel actuator delay in seconds
+    ret.steerActuatorDelay = 0.48          # Steering wheel actuator delay in seconds
 
-    # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
-    # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.longitudinalTuning.kpV = [0.9, 0.8, 0.8]
-
-    # common interfaces
-    ret.transmissionType = car.CarParams.TransmissionType.automatic
-    ret.enableApgs = False                 # advanced parking guidance system
-    ret.safetyConfigs[0].safetyParam = 1
 
     #if disableLong:
     #  ret.safetyParam = 2
@@ -52,6 +49,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.8371
       ret.mass = 850. + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.0
 
       ret.lateralTuning.pid.kf = 0.0000715
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.32]]
@@ -65,8 +63,8 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.8371
       ret.mass = 1015. + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.22
 
-      #ret.gasMaxV = [0.5, 0.5, 0.6]
       ret.lateralTuning.pid.kf = 0.0000917
 
       if Params().get("MyviProfile", encoding="utf-8") == "azri":
@@ -85,6 +83,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.8371
       ret.mass = 940. + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.0
 
       ret.lateralTuning.pid.kf = 0.0000918
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.05], [0.45]]
@@ -96,6 +95,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.68371
       ret.mass = 1310. + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.0
 
       ret.lateralTuning.pid.kf = 0.0000917
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
@@ -109,6 +109,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.9871
       ret.mass = 1025. + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.316
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.20]]
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
@@ -116,14 +117,14 @@ class CarInterface(CarInterfaceBase):
 
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
       ret.longitudinalTuning.kpV = [1.2, 1.2, 0.8]
-      #ret.gasMaxBP = [0.]
-      #ret.gasMaxV = [0.5]
+
     elif candidate == CAR.ATIVA:
       ret.wheelbase = 2.525
       ret.steerRatio = 16.74
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.9871
       ret.mass = 1035. + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.55
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.20]]
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
@@ -131,27 +132,23 @@ class CarInterface(CarInterfaceBase):
 
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
       ret.longitudinalTuning.kpV = [1.6, 1.6, 1.2]
-      #ret.gasMaxBP = [0.]
-      #ret.gasMaxV = [0.8]
+
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
-
-    ret.enableDsu = False
 
     if candidate in ACC_CAR:
       ret.longitudinalTuning.deadzoneBP = [0., 8.05]
       ret.longitudinalTuning.deadzoneV = [.0, .14]
       ret.longitudinalTuning.kiBP = [0., 5., 20.]
       ret.longitudinalTuning.kiV = [.14, .10, .08]
-      #ret.longitudinalTuning.kiV = [.32, .20, .17, .14, .07]
-      #ret.startAccel = 1.2  # Accelerate from 0 faster
 
       ret.minEnableSpeed = -1
       ret.steerActuatorDelay = 0.30           # Steering wheel actuator delay in seconds
+      ret.longitudinalActuatorDelayLowerBound = 0.15
+      ret.longitudinalActuatorDelayUpperBound = 0.15
       ret.enableBsm = True
       ret.stoppingDecelRate = 0.005 # reach stopping target smoothly
-      #ret.startingBrakeRate = 0.2  # release brakes fast
 
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront, tire_stiffness_factor=tire_stiffness_factor)

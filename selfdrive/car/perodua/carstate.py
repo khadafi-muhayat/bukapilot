@@ -40,18 +40,13 @@ class CarState(CarStateBase):
 
     # there is a backwheel speed, but it will overflow to 0 when reach 60kmh
     # perodua vehicles doesn't have a good standard for their wheelspeed scaling
-    ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.rl = ret.wheelSpeeds.rr
-    ret.wheelSpeeds.fr = ret.wheelSpeeds.rr
-    ret.wheelSpeeds.fl = ret.wheelSpeeds.rr
+    ret.wheelSpeeds = self.get_wheel_speeds(
+      cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
+      cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
+      cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
+      cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
+    )
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
-
-    if self.CP.carFingerprint in CAR.MYVI:
-      ret.vEgoRaw *= 1.22
-    elif self.CP.carFingerprint in CAR.MYVI_PSD:
-      ret.vEgoRaw *= 1.316
-    elif self.CP.carFingerprint in CAR.ATIVA:
-      ret.vEgoRaw *= 1.55
 
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
