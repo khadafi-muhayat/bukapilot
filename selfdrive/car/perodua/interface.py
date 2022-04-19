@@ -2,24 +2,17 @@
 from cereal import car
 from selfdrive.swaglog import cloudlog
 from selfdrive.config import Conversions as CV
-from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
+from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.car.perodua.values import CAR
 
 class CarInterface(CarInterfaceBase):
 
   @staticmethod
-  def compute_gb(accel, speed):
-    return float(accel) / 4.0
-
-  @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=None):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "perodua"
-    ret.safetyModel = car.CarParams.SafetyModel.perodua
-
-    # perodua port is a community feature
-    ret.communityFeature = True
+    ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.perodua)]
     ret.radarOffCan = True
 
     ret.steerRateCost = 0.7                # Lateral MPC cost on steering rate, higher value = sharper turn
@@ -31,15 +24,12 @@ class CarInterface(CarInterfaceBase):
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-    ret.gasMaxBP = [0., 9., 35]
-    ret.gasMaxV = [0.4, 0.4, 0.55]
     ret.longitudinalTuning.kpV = [0.9, 0.8, 0.8]
-    ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
     # common interfaces
     ret.transmissionType = car.CarParams.TransmissionType.automatic
     ret.enableApgs = False                 # advanced parking guidance system
-    ret.safetyParam = 1
+    ret.safetyConfigs[0].safetyParam = 1
     ret.enableGasInterceptor = 0x201 in fingerprint[0]
     ret.openpilotLongitudinalControl = True
 
@@ -154,7 +144,6 @@ class CarInterface(CarInterfaceBase):
     self.cp.update_strings(can_strings)
 
     ret = self.CS.update(self.cp)
-    ret.yawRate = self.VM.yaw_rate(ret.steeringAngleDeg * CV.DEG_TO_RAD, ret.vEgo)
     ret.canValid = self.cp.can_valid
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 

@@ -5,8 +5,10 @@ from selfdrive.controls.lib.drive_helpers import get_steer_max
 from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
 from cereal import log
 
-class LatControlPID():
-  def __init__(self, CP):
+
+class LatControlPID(LatControl):
+  def __init__(self, CP, CI):
+    super().__init__(CP, CI)
     self.pid = PIController((CP.lateralTuning.pid.kpBP, CP.lateralTuning.pid.kpV),
                             (CP.lateralTuning.pid.kiBP, CP.lateralTuning.pid.kiV),
                             k_f=CP.lateralTuning.pid.kf, pos_limit=1.0, neg_limit=-1.0)
@@ -16,7 +18,7 @@ class LatControlPID():
     super().reset()
     self.pid.reset()
 
-  def update(self, active, CS, CP, VM, params, desired_curvature, desired_curvature_rate):
+  def update(self, active, CS, CP, VM, params, last_actuators, desired_curvature, desired_curvature_rate):
     pid_log = log.ControlsState.LateralPIDState.new_message()
     pid_log.steeringAngleDeg = float(CS.steeringAngleDeg)
     pid_log.steeringRateDeg = float(CS.steeringRateDeg)

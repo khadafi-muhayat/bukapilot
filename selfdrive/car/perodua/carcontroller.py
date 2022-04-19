@@ -22,6 +22,9 @@ def apply_acttr_steer_torque_limits(apply_torque, apply_torque_last, LIMITS):
 
   return int(round(float(apply_torque)))
 
+def compute_gb(accel, speed):
+  gb = float(accel) / 4.8
+  return clip(gb, 0.0, 0.5), clip(-gb, 0.0, 1.0)
 
 class CarControllerParams():
   def __init__(self, CP):
@@ -51,15 +54,22 @@ class CarController():
     self.brake_pressed = True
     self.params = CarControllerParams(CP)
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
+    self.brake = 0
 
   def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, v_target):
     can_sends = []
 
+    # steer
     steer_max_interp = interp(CS.out.vEgo, self.params.STEER_BP, self.params.STEER_LIM_TORQ)
     new_steer = int(round(actuators.steer * steer_max_interp))
     apply_steer = apply_acttr_steer_torque_limits(new_steer, self.last_steer, self.params)
 
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
+
+    # gas, brake
+    apply_gas, apply_brake = compute_gb(actuators.accel, CS.out.vEgo)
+    wind_brake = interp(CS.out.vEgo, [0.0, 2.3, 35.0], [0.001, 0.002, 0.15])
+    apply_gas = abs(clip(apply_gas - apply_brake + wind_brake * 3 / 4, 0., 1.) * self.params.GAS_MAX)
 
     '''
     Perodua vehicles supported by Kommu includes vehicles that does not have stock LKAS and ACC.
@@ -81,7 +91,8 @@ class CarController():
 
         apply_brake = 0
         if lead_visible:
-          apply_brake = actuators.brake
+          apply_brake = brake
+        self.brake = apply_brake
 
         can_sends.append(perodua_create_accel_command(self.packer, CS.out.vEgo, CS.out.cruiseState.speed,
                                                       CS.out.cruiseState.available, enabled, lead_visible,
@@ -102,15 +113,13 @@ class CarController():
       # gas
       if (frame % self.params.GAS_STEP) == 0:
         idx = frame // self.params.GAS_STEP
-        apply_gas = clip(actuators.gas, 0., 1.)
-        apply_gas = abs(apply_gas * self.params.GAS_MAX)
 
         if CS.CP.enableGasInterceptor:
           can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
 
       # brakes
       if (frame % self.params.ADAS_STEP) == 0:
-        apply_brake = clip(actuators.brake, 0., 1.)
+        self.brake = apply_brake
 
         # AEB alert for non-braking cars
         if CS.CP.carFingerprint in NOT_CAN_CONTROLLED and apply_brake > (self.params.BRAKE_ALERT_PERCENT / 100):
@@ -122,4 +131,7 @@ class CarController():
             can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
 
     self.last_steer = apply_steer
-    return can_sends
+    new_actuators = actuators.copy()
+    new_actuators.steer = apply_steer / steer_max_interp
+
+    return new_actuators, can_sends
