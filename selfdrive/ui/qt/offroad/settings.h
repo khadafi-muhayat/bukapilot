@@ -11,6 +11,21 @@
 
 #include "selfdrive/ui/qt/widgets/controls.h"
 
+class BranchControl : public ButtonControl {
+  Q_OBJECT
+
+public:
+  BranchControl();
+
+  void refresh();
+
+private:
+  Params params;
+  QLabel branch_label;
+
+  void switchToBranch(const QString &branch);
+};
+
 // ********** settings window + top-level panels **********
 
 class DevicePanel : public QWidget {
@@ -18,7 +33,6 @@ class DevicePanel : public QWidget {
 public:
   explicit DevicePanel(QWidget* parent = nullptr);
 signals:
-  void reviewTrainingGuide();
   void showDriverView();
 };
 
@@ -37,7 +51,7 @@ private:
   void showEvent(QShowEvent *event) override;
   void updateLabels();
 
-  LabelControl *gitBranchLbl;
+  BranchControl *branchControl;
   LabelControl *gitCommitLbl;
   LabelControl *osVersionLbl;
   LabelControl *versionLbl;
@@ -61,7 +75,6 @@ protected:
 signals:
   void closeSettings();
   void offroadTransition(bool offroad);
-  void reviewTrainingGuide();
   void showDriverView();
 
 private:
@@ -69,4 +82,6 @@ private:
   QWidget *sidebar_widget;
   QButtonGroup *nav_btns;
   QStackedWidget *panel_widget;
+  QWidget *panel_header;
+  QLabel *header_label;
 };
