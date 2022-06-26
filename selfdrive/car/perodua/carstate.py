@@ -16,7 +16,7 @@ PEDAL_COUNTER_THRES = 35
 PEDAL_UPPER_TRIG_THRES = 0.125
 PEDAL_NON_ZERO_THRES = 0.01
 
-SEC_HOLD_TO_STEP_SPEED = 1
+SEC_HOLD_TO_STEP_SPEED = 0.6
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -40,18 +40,19 @@ class CarState(CarStateBase):
 
     # there is a backwheel speed, but it will overflow to 0 when reach 60kmh
     # perodua vehicles doesn't have a good standard for their wheelspeed scaling
-    if self.CP.carFingerprint in CAR.MYVI_PSD:
-      ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS * 0.83
-    else:
-      ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-
-    # Todo: find it out for a better representation of speed
+    ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
     ret.wheelSpeeds.rl = ret.wheelSpeeds.rr
     ret.wheelSpeeds.fr = ret.wheelSpeeds.rr
     ret.wheelSpeeds.fl = ret.wheelSpeeds.rr
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
+
     if self.CP.carFingerprint in CAR.MYVI:
       ret.vEgoRaw *= 1.22
+    elif self.CP.carFingerprint in CAR.MYVI_PSD:
+      ret.vEgoRaw *= 1.316
+    elif self.CP.carFingerprint in CAR.ATIVA:
+      ret.vEgoRaw *= 1.602
+
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw < 0.01
@@ -180,7 +181,7 @@ class CarState(CarStateBase):
         elif minus_button: # is holding
           while self.dt >= SEC_HOLD_TO_STEP_SPEED:
             kph = self.cruise_speed * CV.MS_TO_KPH
-            kph = (ceil(kph / 5) - 1) * 5  # step down to next nearest 5
+            kph = ((kph / 5) - 1) * 5  # step down to next nearest 5
             kph = max(30, kph)
             self.cruise_speed = kph * CV.KPH_TO_MS
             self.dt -= SEC_HOLD_TO_STEP_SPEED
