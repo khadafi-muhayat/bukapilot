@@ -137,7 +137,12 @@ class CarController():
 
       # CAN controlled lateral
       if (frame % 2) == 0:
-        can_sends.append(create_can_steer_command(self.packer, apply_steer, enabled, (frame/2) % 15))
+        stockLdw = CS.out.stockAdas.laneDepartureHUD
+        if stockLdw:
+            apply_steer = CS.out.stockAdas.ldpSteerV
+
+        steer_req = enabled or stockLdw
+        can_sends.append(create_can_steer_command(self.packer, apply_steer, steer_req, (frame/2) % 15))
 
       # Toggle auto idle: doesn't work
       # if (frame == 1000):
@@ -157,7 +162,7 @@ class CarController():
                                                       CS.out.cruiseState.available, enabled, lead_visible,
                                                       v_target, apply_brake, apply_gas, pump))
         can_sends.append(perodua_create_brake_command(self.packer, enabled, brake_req, pump, apply_brake, CS.out.stockAeb, (frame/5) % 8))
-        can_sends.append(perodua_create_hud(self.packer, CS.out.cruiseState.available, enabled, llane_visible, rlane_visible, ldw, CS.out.stockFcw, CS.out.stockAeb, CS.out.frontDeparture))
+        can_sends.append(perodua_create_hud(self.packer, CS.out.cruiseState.available, enabled, llane_visible, rlane_visible, ldw, CS.out.stockFcw, CS.out.stockAeb, CS.out.stockAdas.frontDepartureHUD))
 
     # KommuActuator controls
     else:

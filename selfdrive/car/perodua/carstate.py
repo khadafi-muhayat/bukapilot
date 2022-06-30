@@ -139,7 +139,9 @@ class CarState(CarStateBase):
           self.cruise_speed = max(30 * CV.KPH_TO_MS, ret.vEgo)
           self.is_cruise_latch = True
     else:
-      ret.frontDeparture = bool(cp.vl["LKAS_HUD"]["FRONT_DEPART"])
+      ret.stockAdas.frontDepartureHUD = bool(cp.vl["LKAS_HUD"]["FRONT_DEPART"])
+      ret.stockAdas.laneDepartureHUD = bool(cp.vl["LKAS_HUD"]["LDA_ALERT"])
+      ret.stockAdas.ldpSteerV = cp.vl["STEERING_LKAS"]['STEER_CMD']
 
       ret.stockAeb = bool(cp.vl["LKAS_HUD"]['AEB_BRAKE'])
       ret.stockFcw = bool(cp.vl["LKAS_HUD"]['AEB_ALARM'])
@@ -302,7 +304,9 @@ class CarState(CarStateBase):
       signals.append(("CANCEL","PCM_BUTTONS", 0))
       signals.append(("PEDAL_DEPRESSED","PCM_BUTTONS", 0))
       signals.append(("LKAS_ENGAGED", "LKAS_HUD", 0))
+      signals.append(("LDA_ALERT", "LKAS_HUD", 0))
       signals.append(("ACC_CMD", "ACC_CMD_HUD", 0))
+      signals.append(("STEER_CMD", "STEERING_LKAS", 0))
       signals.append(("STEER_REQ", "STEERING_LKAS", 0))
       signals.append(("FRONT_DEPART", "LKAS_HUD", 0))
       signals.append(("AEB_BRAKE", "LKAS_HUD", 0))
