@@ -31,8 +31,10 @@ def psd_brake(apply_brake, last_pump_start_ts, last_pump_end_ts, ts):
   # only brake when magnitude >= 0.25
   if apply_brake < BRAKE_THRESHOLD:
     pump = 0
-  elif apply_brake < 0.61:
+  elif apply_brake < 0.46:
     pump = 0.2
+  elif apply_brake < 0.61:
+    pump = 0.3
   elif apply_brake < 0.76:
     pump = 0.4
   elif apply_brake < 0.90:
@@ -45,8 +47,22 @@ def psd_brake(apply_brake, last_pump_start_ts, last_pump_end_ts, ts):
     pump = 0.8
   elif apply_brake < 1.50:
     pump = 0.9
-  else:
+  elif apply_brake < 1.66:
     pump = 1.0
+  elif apply_brake < 1.80:
+    pump = 1.1
+  elif apply_brake < 1.94:
+    pump = 1.2
+  elif apply_brake < 2.10:
+    pump = 1.3
+  elif apply_brake < 2.26:
+    pump = 1.4
+  elif apply_brake < 2.41:
+    pump = 1.5
+  else:
+    pump = 1.6
+
+  # pump = interp(apply_brake, [0, 3], [0.2, 1.8])
 
   if apply_brake >= BRAKE_THRESHOLD:
     last_pump_end_ts = ts
