@@ -51,7 +51,7 @@ class CarState(CarStateBase):
     elif self.CP.carFingerprint in CAR.MYVI_PSD:
       ret.vEgoRaw *= 1.316
     elif self.CP.carFingerprint in CAR.ATIVA:
-      ret.vEgoRaw *= 1.602
+      ret.vEgoRaw *= 1.55
 
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)

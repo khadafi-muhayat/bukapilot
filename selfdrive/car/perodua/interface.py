@@ -114,6 +114,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
       ret.lateralTuning.pid.kf = 0.0000007
 
+      ret.longitudinalTuning.kpBP = [0., 5., 20.]
+      ret.longitudinalTuning.kpV = [1.2, 1.2, 0.8]
       ret.gasMaxBP = [0.]
       ret.gasMaxV = [0.5]
     elif candidate == CAR.ATIVA:
@@ -127,8 +129,10 @@ class CarInterface(CarInterfaceBase):
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
       ret.lateralTuning.pid.kf = 0.0000007
 
+      ret.longitudinalTuning.kpBP = [0., 5., 20.]
+      ret.longitudinalTuning.kpV = [1.6, 1.6, 1.2]
       ret.gasMaxBP = [0.]
-      ret.gasMaxV = [0.5]
+      ret.gasMaxV = [0.8]
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
@@ -138,8 +142,6 @@ class CarInterface(CarInterfaceBase):
     if candidate in ACC_CAR:
       ret.longitudinalTuning.deadzoneBP = [0., 8.05]
       ret.longitudinalTuning.deadzoneV = [.0, .14]
-      ret.longitudinalTuning.kpBP = [0., 5., 20.]
-      ret.longitudinalTuning.kpV = [1.2, 1.2, 0.8]
       ret.longitudinalTuning.kiBP = [0., 5., 20.]
       ret.longitudinalTuning.kiV = [.14, .10, .08]
       #ret.longitudinalTuning.kiV = [.32, .20, .17, .14, .07]

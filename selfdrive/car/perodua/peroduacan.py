@@ -97,8 +97,8 @@ def aeb_brake_command(packer, enabled, decel_cmd):
 def perodua_create_brake_command(packer, enabled, decel_req, pump, decel_cmd, aeb, idx):
 
   if aeb:
-    decel_req = 4 # cap it at -4ms^-2
-    pump = 1
+    decel_req = 2.55 # cap it at -4ms^-2
+    pump = 1.6 # cap at 1.6 because 4 bits with 0.1 scale
 
   values = {
     "COUNTER": idx,

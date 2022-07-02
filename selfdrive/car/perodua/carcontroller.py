@@ -31,6 +31,8 @@ def psd_brake(apply_brake, last_pump_start_ts, last_pump_end_ts, ts):
   # only brake when magnitude >= 0.25
   if apply_brake < BRAKE_THRESHOLD:
     pump = 0
+  elif apply_brake < 0.32:
+    pump = 0.1
   elif apply_brake < 0.46:
     pump = 0.2
   elif apply_brake < 0.61:
@@ -62,7 +64,7 @@ def psd_brake(apply_brake, last_pump_start_ts, last_pump_end_ts, ts):
   else:
     pump = 1.6
 
-  # pump = interp(apply_brake, [0, 3], [0.2, 1.8])
+#  pump = interp(apply_brake, [BRAKE_THRESHOLD, 3], [0, 1.6])
 
   if apply_brake >= BRAKE_THRESHOLD:
     last_pump_end_ts = ts
@@ -87,13 +89,6 @@ def psd_brake(apply_brake, last_pump_start_ts, last_pump_end_ts, ts):
   # brake_req = 0
 
   return pump, last_pump_start_ts, last_pump_end_ts, brake_req, saturated
-
-
-def standstill_hold(pump, mag):
-  pump += 0.01
-  mag += 0.01
-  return pump, mag
-
 
 class CarControllerParams():
   def __init__(self, CP):
@@ -124,6 +119,9 @@ class CarController():
     self.steer_rate_limited = False
     self.steering_direction = False
     self.brake_pressed = False
+#    self.holding = False
+#    self.last_hold_pump = 0
+#    self.init_hold_t = 0
     self.params = CarControllerParams(CP)
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
 
@@ -136,7 +134,11 @@ class CarController():
 
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
     apply_gas = clip(actuators.gas, 0., 1.)
-    apply_brake = clip(actuators.brake * 2.55, 0., 3.)
+    if CS.CP.carFingerprint == CAR.ATIVA:
+      apply_brake = clip(actuators.brake * 2.8, 0., 2.55)
+      apply_gas *= 1.2
+    else:
+      apply_brake = clip(actuators.brake * 2.6, 0., 2.55)
 
     '''
     Perodua vehicles supported by Kommu includes vehicles that does not have stock LKAS and ACC.
@@ -155,7 +157,7 @@ class CarController():
       if (frame % 2) == 0:
         stockLdw = CS.out.stockAdas.laneDepartureHUD
         if stockLdw:
-            apply_steer = CS.out.stockAdas.ldpSteerV
+            apply_steer = -CS.out.stockAdas.ldpSteerV
 
         steer_req = enabled or stockLdw
         can_sends.append(create_can_steer_command(self.packer, apply_steer, steer_req, (frame/2) % 15))
@@ -171,9 +173,21 @@ class CarController():
 
         can_sends.append(make_can_msg(2015, b'\x01\x04\x00\x00\x00\x00\x00\x00', 0))
         pump, self.last_pump_start_ts, self.last_pump_end_ts, brake_req, self.pump_saturated = psd_brake(apply_brake, self.last_pump_start_ts, self.last_pump_end_ts, ts)
+
         # standstill
-        #if CS.out.standstill and self.pump_saturated:
-        #  pump, apply_brake = standstill_hold(pump, apply_brake)
+ #       if CS.out.standstill and self.pump_saturated:
+ #         if not self.holding:
+ #           self.holding = True
+ #           self.last_hold_pump = pump
+ #           self.init_hold_t = ts
+
+ #         if ts - self.init_hold_t > 3:
+ #           pump = pump + 0.1
+ #           self.init_hold_t = ts
+ #           self.last_hold_pump = pump
+ #       else:
+ #         self.holding = False
+
         can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speed,
                                                       CS.out.cruiseState.available, enabled, lead_visible,
                                                       v_target, apply_brake, apply_gas, pump))
