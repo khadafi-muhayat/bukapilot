@@ -251,7 +251,7 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
     pm->send("kommuState", msg);
   });
 
-  for (auto btn : {dcamBtn, resetCalibBtn, uninstallBtn, tuneProfile1Btn, tuneProfile2Btn, tuneProfile3Btn, tuneProfile4Btn, tuneProfile5Btn}) {
+  for (auto btn : {dcamBtn, resetCalibBtn, uninstallBtn}) {
     if (btn) {
       main_layout->addWidget(horizontal_line());
       if (btn != resetCalibBtn &&
