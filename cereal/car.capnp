@@ -195,6 +195,16 @@ struct CarState {
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
 
+  # stock system
+  stockAdas @39: StockADAS;
+
+  struct StockADAS {
+    laneDepartureHUD @0:Bool;
+    frontDepartureHUD @1:Bool;
+    ldpSteerV @2:Float32;        # stock ldp steer req value
+    aebV @3:Float32;             # stock aeb req value
+  }
+
   struct WheelSpeeds {
     # optional wheel speeds
     fl @0 :Float32;
@@ -538,7 +548,8 @@ struct CarParams {
     subaruLegacy @22;  # pre-Global platform
     hyundaiLegacy @23;
     hyundaiCommunity @24;
-    stellantis @25;
+    proton @25;
+    perodua @26;
   }
 
   enum SteerControlType {
