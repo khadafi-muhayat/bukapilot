@@ -53,6 +53,9 @@ class CarState(CarStateBase):
     ret.vEgoRaw = mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr])
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
 
+    if self.CP.carFingerprint == CAR.ALPHARD_TSS2:
+      ret.vEgoRaw *= 1.035
+
     ret.standstill = ret.vEgoRaw < 0.001
 
     ret.steeringAngleDeg = cp.vl["STEER_ANGLE_SENSOR"]["STEER_ANGLE"] + cp.vl["STEER_ANGLE_SENSOR"]["STEER_FRACTION"]
@@ -221,4 +224,5 @@ class CarState(CarStateBase):
       signals.append(("ACC_TYPE", "ACC_CONTROL"))
       checks.append(("ACC_CONTROL", 33))
 
-    return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 2)
+    # Todo: CHange back to bus 2 as the source
+    return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0)
