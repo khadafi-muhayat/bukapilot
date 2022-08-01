@@ -7,14 +7,14 @@ Version 5-longitudinalOverhaul  (2022-08-01)
  * New package feature thanks to @benmasato
  * Toyota: Enable stock Lane Departure Prevention when not engaged
  * From upstream openpilot v0.8.13:
- *  New driving model from upstream which is now trained on 1 million minutes of driving data
- *  Fixed lead training making lead predictions significantly more accurate
- *  Driver monitoring now works regardless of mask
- *  Combined longitudinal planning now happens in a single MPC system
- *  New vision based forward collision warning
- *  New alert sounds
- *  New MPC acceleration lag compensation
- *  Fixed vehicleModelInvalid triggering due to false positives
+   *  New driving model from upstream which is now trained on 1 million minutes of driving data
+   *  Fixed lead training making lead predictions significantly more accurate
+   *  Driver monitoring now works regardless of mask
+   *  Combined longitudinal planning now happens in a single MPC system
+   *  New vision based forward collision warning
+   *  New alert sounds
+   *  New MPC acceleration lag compensation
+   *  Fixed vehicleModelInvalid triggering due to false positives
 
 
 Version 4-firstbatch  (2022-07-04)
