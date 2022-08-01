@@ -49,7 +49,6 @@ class CarState(CarStateBase):
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
     )
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
-    ret.vEgoCluster = ret.vEgoRaw * HUD_MULTIPLIER
 
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
@@ -116,6 +115,8 @@ class CarState(CarStateBase):
     ret.steerError = False        # since Perodua has no LKAS, make it always no warning
 
     if self.CP.carFingerprint not in ACC_CAR:
+
+      ret.vEgoCluster = ret.vEgoRaw * HUD_MULTIPLIER
       ret.stockAeb = cp.vl["ADAS_AEB"]['BRAKE_REQ'] != 0
       ret.stockFcw = cp.vl["ADAS_HUD"]['AEB_ALARM'] != 0
       ret.cruiseState.available = True
@@ -134,12 +135,14 @@ class CarState(CarStateBase):
       # latching cruiseState logic
       if not self.is_cruise_latch:
         if self.check_pedal_engage(ret.gas, pedal_press_state):
-          self.cruise_speed = max(30 * CV.KPH_TO_MS, ret.vEgo)
+          self.cruise_speed = max(30 * CV.KPH_TO_MS, ret.vEgoCluster)
           self.is_cruise_latch = True
 
       # set distance as SetDistance.normal
       ret.cruiseState.setDistance = 2
     else:
+
+      ret.vEgoCluster = cp.vl["BUTTONS"]["UI_SPEED"] * CV.KPH_TO_MS
       ret.stockAdas.frontDepartureHUD = bool(cp.vl["LKAS_HUD"]["FRONT_DEPART"])
       ret.stockAdas.laneDepartureHUD = bool(cp.vl["LKAS_HUD"]["LDA_ALERT"])
       ret.stockAdas.ldpSteerV = cp.vl["STEERING_LKAS"]['STEER_CMD']
@@ -319,6 +322,7 @@ class CarState(CarStateBase):
       signals.append(("FOLLOW_DISTANCE", "ACC_CMD_HUD", 0))
       signals.append(("LDA_ALERT", "LKAS_HUD", 0))
       signals.append(("GAS_PEDAL_STEP", "GAS_PEDAL_2", 0))
+      signals.append(("UI_SPEED", "BUTTONS", 0))
     else:
       signals.append(("MAIN_TORQUE", "STEERING_TORQUE", 0))
       signals.append(("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.))

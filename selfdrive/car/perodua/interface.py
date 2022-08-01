@@ -43,7 +43,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.8371
       ret.mass = 850. + STD_CARGO_KG
-      ret.wheelSpeedFactor = 1.0
+      ret.wheelSpeedFactor = 0.927
 
       ret.lateralTuning.pid.kf = 0.0000715
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.32]]
@@ -104,7 +104,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.9871
       ret.mass = 1025. + STD_CARGO_KG
-      ret.wheelSpeedFactor = 1.316
+      ret.wheelSpeedFactor = 1.32
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.20]]
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
@@ -112,6 +112,8 @@ class CarInterface(CarInterfaceBase):
 
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
       ret.longitudinalTuning.kpV = [1.55, 1.55, 0.6]
+      ret.longitudinalActuatorDelayLowerBound = 0.42
+      ret.longitudinalActuatorDelayUpperBound = 0.60
 
     elif candidate == CAR.ATIVA:
       ret.wheelbase = 2.525
@@ -119,14 +121,16 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.9871
       ret.mass = 1035. + STD_CARGO_KG
-      ret.wheelSpeedFactor = 1.55
+      ret.wheelSpeedFactor = 1.48
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.20]]
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
       ret.lateralTuning.pid.kf = 0.0000007
 
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
-      ret.longitudinalTuning.kpV = [1.7, 1.6, 0.6]
+      ret.longitudinalTuning.kpV = [1.6, 1.6, 0.6]
+      ret.longitudinalActuatorDelayLowerBound = 0.22
+      ret.longitudinalActuatorDelayUpperBound = 0.40
 
     else:
       ret.dashcamOnly = True
@@ -138,8 +142,6 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kiBP = [0., 5., 20.]
       ret.longitudinalTuning.kiV = [.14, .08, .02]
 
-      ret.longitudinalActuatorDelayLowerBound = 0.22
-      ret.longitudinalActuatorDelayUpperBound = 0.40
       ret.minEnableSpeed = -1
       ret.steerActuatorDelay = 0.30           # Steering wheel actuator delay in seconds
       ret.enableBsm = True

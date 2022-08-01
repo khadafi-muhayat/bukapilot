@@ -72,7 +72,7 @@ class CarControllerParams():
     self.STEER_REDUCE_FACTOR = 1000                 # how much to divide the steer when reducing fighting torque
     self.GAS_MAX = 2600                             # KommuActuator dac gas value
     self.GAS_STEP = 2                               # how often we update the longitudinal cmd
-    self.BRAKE_ALERT_PERCENT = 30                   # percentage of brake to sound stock AEB alert
+    self.BRAKE_ALERT_PERCENT = 60                   # percentage of brake to sound stock AEB alert
     self.ADAS_STEP = 5                              # 100/5 approx ASA frequency of 20 hz
 
 class CarController():
