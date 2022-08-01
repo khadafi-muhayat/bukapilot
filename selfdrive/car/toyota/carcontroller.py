@@ -53,8 +53,7 @@ class CarController():
     if stockLdw:
       apply_steer = CS.out.stockAdas.ldpSteerV
 
-    # Cut steering while we're in a known fault state (2s)
-    if (not stockLdw and not active) or CS.steer_state in (9, 25):
+    if not stockLdw and not active:
       apply_steer = 0
       apply_steer_req = 0
     else:
@@ -100,10 +99,10 @@ class CarController():
       if pcm_cancel_cmd and CS.CP.carFingerprint in (CAR.LEXUS_IS, CAR.LEXUS_RC):
         can_sends.append(create_acc_cancel_command(self.packer))
       elif CS.CP.openpilotLongitudinalControl:
-        can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type))
+        can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type, CS.out.cruiseState.setDistance))
         self.accel = pcm_accel_cmd
       else:
-        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.acc_type))
+        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.acc_type, CS.out.cruiseState.setDistance))
 
     if frame % 2 == 0 and CS.CP.enableGasInterceptor and CS.CP.openpilotLongitudinalControl:
       # send exactly zero if gas cmd is zero. Interceptor will send the max between read value and gas cmd.
@@ -115,7 +114,7 @@ class CarController():
     # - there is something to display
     # - there is something to stop displaying
     fcw_alert = hud_alert == VisualAlert.fcw
-    steer_alert = hud_alert in (VisualAlert.steerRequired, VisualAlert.ldw)
+    steer_alert = hud_alert in (VisualAlert.steerRequired, VisualAlert.ldw) or stockLdw
 
     send_ui = False
     if ((fcw_alert or steer_alert) and not self.alert_active) or \
