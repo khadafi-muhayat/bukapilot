@@ -5,6 +5,7 @@ from cereal import car
 from selfdrive.car.wuling.values import CAR, CruiseButtons,AccState
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
+from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
@@ -124,6 +125,11 @@ class CarInterface(CarInterfaceBase):
     events = self.create_common_events(ret, extra_gears=[GearShifter.sport, GearShifter.low,
                                                          GearShifter.eco, GearShifter.manumatic],
                                        pcm_enable=self.CP.pcmCruise)
+    
+    
+     # create events for auto lane change below allowable speed
+    if ret.vEgo < LANE_CHANGE_SPEED_MIN and (ret.leftBlinker or ret.rightBlinker):
+      events.add(EventName.belowLaneChangeSpeed)
 
     if ret.vEgo < self.CP.minEnableSpeed:
       events.add(EventName.belowEngageSpeed)
@@ -141,6 +147,8 @@ class CarInterface(CarInterfaceBase):
   
   def apply(self, c):
     hud_control = c.hudControl
+    isLdw = c.hudControl.leftLaneDepart or c.hudControl.rightLaneDepart
+
     ret = self.CC.update(c, c.enabled, self.CS, self.frame, c.actuators,
                          c.cruiseControl.cancel, 
                          hud_control.visualAlert,
