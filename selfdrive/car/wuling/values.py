@@ -47,6 +47,9 @@ class CarControllerParams:
 
   GAS_LOOKUP_V = [MAX_ACC_REGEN, ZERO_GAS, MAX_GAS]
   BRAKE_LOOKUP_V = [MAX_BRAKE, 0.]
+  
+
+
 class CAR:
   ALMAS_RS_PRO = "WULING ALMAZ RS PRO 2022"
 class CruiseButtons:
@@ -82,5 +85,6 @@ DBC = {
 }
 
 STEER_THRESHOLD = 0
+HUD_MULTIPLIER = 1.078
 
 PREGLOBAL_CARS = []

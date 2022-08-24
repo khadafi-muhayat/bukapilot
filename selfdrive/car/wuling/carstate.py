@@ -2,11 +2,13 @@ import copy
 from cereal import car
 from common.numpy_fast import mean
 from opendbc.can.can_define import CANDefine
-from common.conversions import Conversions as CV
+# from common.conversions import Conversions as CV
+from selfdrive.config import Conversions as CV
 
 from selfdrive.car.interfaces import CarStateBase
 from opendbc.can.parser import CANParser
-from selfdrive.car.wuling.values import DBC, CanBus, STEER_THRESHOLD, CAR, PREGLOBAL_CARS 
+from selfdrive.car.wuling.values import DBC, CanBus, HUD_MULTIPLIER, STEER_THRESHOLD, CAR, PREGLOBAL_CARS 
+from time import time
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -23,15 +25,19 @@ class CarState(CarStateBase):
     self.low_speed_alert = False
     self.lkas_allowed_speed = False
     self.lkas_disabled = False
-
-
+    self.cruise_speed = 30 * CV.KPH_TO_MS
+    self.cruise_speed_counter = 0
+    self.is_cruise_latch = False
+    self.rising_edge_since = 0
+    self.last_frame = time() # todo: existing infra to reuse?
+    self.dt = 0
 
   def update(self, pt_cp, cp_cam, loopback_cp):
     ret = car.CarState.new_message()
 
     self.prev_cruise_buttons = self.cruise_buttons
 
-    self.engineRPM = pt_cp.vl["ECMEngineStatus"]['EngineRPM']*0.25
+    self.engineRPM = pt_cp.vl["ECMEngineStatus"]['EngineRPM'] * 0.25
 
     ret.wheelSpeeds = self.get_wheel_speeds(
       pt_cp.vl["EBCMWheelSpdFront"]["FLWheelSpd"],
@@ -59,6 +65,7 @@ class CarState(CarStateBase):
     # ret.brake = pt_cp.vl["ECMEngineStatus"]["Brake_Pressed"] != 0
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(pt_cp.vl["ECMPRDNL"]["TRANSMISSION_STATE"], None))
 
+    ret.vEgoCluster = ret.vEgoRaw * HUD_MULTIPLIER
 
     self.park_brake = pt_cp.vl["EPBStatus"]["EPBSTATUS"]
     self.pcm_acc_status = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSTATE"]
@@ -70,7 +77,7 @@ class CarState(CarStateBase):
     # ret.cruiseActualEnabled = ret.cruiseState.enabled
     ret.cruiseState.available = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSTATE"] != 0
     # ret.cruiseState.available = True
-    ret.cruiseState.speed = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSpeedSetpoint"] * CV.MPH_TO_MS
+    ret.cruiseState.speed = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSpeedSetpoint"] * CV.KPH_TO_MS
     
     ret.steeringTorque = pt_cp.vl["PSCMSteeringAngle"]["SteeringTorque"]
 
