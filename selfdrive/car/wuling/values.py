@@ -84,7 +84,7 @@ DBC = {
   CAR.ALMAS_RS_PRO: dbc_dict('wuling_almazrs_generated', None),
 }
 
-STEER_THRESHOLD = 0
+STEER_THRESHOLD = 1.0
 HUD_MULTIPLIER = 1.078
 
 PREGLOBAL_CARS = []

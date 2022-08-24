@@ -82,6 +82,7 @@ class CarState(CarStateBase):
     ret.cruiseState.speed = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSpeedSetpoint"] * CV.KPH_TO_MS
     
     ret.steeringTorque = pt_cp.vl["PSCMSteeringAngle"]["SteeringTorque"]
+    ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
 
     print('Cruise speed :  %d' % ret.cruiseState.speed)
 
