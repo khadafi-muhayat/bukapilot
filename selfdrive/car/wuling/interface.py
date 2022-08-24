@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from cereal import car
-from common.conversions import Conversions as CV
+# from common.conversions import Conversions as CV
 
 from selfdrive.car.wuling.values import CAR, CruiseButtons,AccState
 from selfdrive.car import STD_CARGO_KG, create_button_enable_events, create_button_event, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
@@ -11,7 +11,8 @@ EventName = car.CarEvent.EventName
 GearShifter = car.CarState.GearShifter
 TransmissionType = car.CarParams.TransmissionType
 NetworkLocation = car.CarParams.NetworkLocation
-
+BUTTONS_DICT = {CruiseButtons.RES_ACCEL: ButtonType.accelCruise, CruiseButtons.DECEL_SET: ButtonType.decelCruise,
+                CruiseButtons.MAIN: ButtonType.altButton3, CruiseButtons.CANCEL: ButtonType.cancel}
 class CarInterface(CarInterfaceBase):
 
   @staticmethod
