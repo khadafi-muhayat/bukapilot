@@ -21,17 +21,21 @@ class CarInterface(CarInterfaceBase):
 
     ret.carName = "wuling"
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.wuling)]
-
+    ret.safetyConfigs[0].safetyParam = 2
+    ret.transmissionType = car.CarParams.TransmissionType.automatic
     ret.radarOffCan = True
     ret.lateralTuning.init('pid')
-    ret.pcmCruise = False 
+    ret.pcmCruise = False
+    ret.enableApgs = False 
+    ret.enableDsu = False
     
     # ret.dashcamOnly = False
     # ret.dashcamOnly = candidate not in (CAR.CX5_2022, CAR.CX9_2021)
     ret.openpilotLongitudinalControl = True
 
-    # ret.steerRateCost = 0.7
-    ret.steerLimitTimer = 0.4
+    ret.steerRateCost = 0.7
+    ret.steerLimitTimer = 0.1
+    # ret.steerLimitTimer = 0.4
     ret.mass = 3000. + STD_CARGO_KG
     ret.wheelbase = 2.75
     ret.centerToFront = ret.wheelbase * 0.5
