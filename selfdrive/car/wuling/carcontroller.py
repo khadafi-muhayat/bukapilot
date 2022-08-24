@@ -6,7 +6,7 @@ from selfdrive.car import make_can_msg
 from common.numpy_fast import interp
 
 from opendbc.can.packer import CANPacker
-from common.conversions import Conversions as CV
+from selfdrive.config import Conversions as CV
 from cereal import car
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert

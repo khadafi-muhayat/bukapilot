@@ -100,8 +100,13 @@ class CarInterface(CarInterfaceBase):
     return self.CS.out
 
   # returns a car.CarState
-  def _update(self, c):
+  def update(self, c, can_strings):
+    # to receive CAN Messages
+    self.cp.update_strings(can_strings)
+
     ret = self.CS.update(self.cp, self.cp_cam, self.cp_loopback)
+    ret.canValid = self.cp.can_valid
+    ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
     # if self.CS.cruise_buttons != self.CS.prev_cruise_buttons and self.CS.prev_cruise_buttons != CruiseButtons.INIT:
     #   be = create_button_event(self.CS.cruise_buttons, self.CS.prev_cruise_buttons, BUTTONS_DICT, CruiseButtons.UNPRESS)
