@@ -41,11 +41,11 @@ BU_:
 
 BO_ 840 EBCMWheelSpdFront: 4 K17_EBCM
  SG_ FLWheelSpd : 7|16@0+ (0.0311,0) [0|255] "km/h"  NEO
- SG_ FRWheelSpd : 22|16@0+ (0.0311,17) [0|255] "km/h"  NEO
+ SG_ FRWheelSpd : 22|15@0+ (0.0311,0) [0|255] "km/h"  NEO
 
 BO_ 842 EBCMWheelSpdRear: 5 K17_EBCM
  SG_ RLWheelSpd : 7|16@0+ (0.0311,0) [0|255] "km/h"  NEO
- SG_ RRWheelSpd : 22|16@0+ (0.0311,17) [0|255] "km/h"  NEO
+ SG_ RRWheelSpd : 22|15@0+ (0.0311,0) [0|255] "km/h"  NEO
 
 BO_ 485 PSCMSteeringAngle: 8 K43_PSCM
  SG_ SteeringWheelAngle : 15|16@0- (0.0625,0) [-2047|2047] "deg"  NEO

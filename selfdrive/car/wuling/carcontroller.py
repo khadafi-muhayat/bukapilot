@@ -94,7 +94,7 @@ class CarController():
 
     if self.CP.openpilotLongitudinalControl:
       if self.frame % 4 == 0:
-        if not CC.longActive:
+        if not CC.active:
           # Stock ECU sends max regen when not enabled
           self.apply_gas = self.params.MAX_ACC_REGEN
           self.apply_brake = 0
@@ -131,7 +131,9 @@ class CarController():
       # can_sends.append(wulingcan.create_acc_dashboard_command(self.packer, CanBus.POWERTRAIN, enabled, hud_speed * CV.MS_TO_KPH, 0, 0))
 
     new_actuators = actuators.copy()
-    new_actuators.steer = self.apply_steer_last / self.p.STEER_MAX
+    new_actuators.steer = self.apply_steer_last / P.STEER_MAX
+    new_actuators.gas = self.apply_gas
+    new_actuators.brake = self.apply_brake
     
     print('Last enable :  %s' % self.enabled_last)
     
