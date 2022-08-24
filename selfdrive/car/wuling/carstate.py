@@ -74,10 +74,12 @@ class CarState(CarStateBase):
     # dp - brake lights
     # ret.brakeLights = ret.brakePressed
     
-    ret.cruiseState.enabled = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSTATE"] != 0
+    # ret.cruiseState.enabled = pt_cp.vl["ASCMActiveCruiseControlStatus"]["LKA_ACTIVE"] != 0
+    ret.cruiseState.enabled = pt_cp.vl["LKAS_HUD"]["LKA_ACTIVE"] != 0
     # ret.cruiseState.enabled = True
     # ret.cruiseActualEnabled = ret.cruiseState.enabled
-    ret.cruiseState.available = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSTATE"] != 0
+    ret.cruiseState.available = pt_cp.vl["LKAS_HUD"]["LKA_ACTIVE"] != 0
+    # ret.cruiseState.available = pt_cp.vl["ASCMActiveCruiseControlStatus"]["LKA_ACTIVE"] != 0
     # ret.cruiseState.available = True
     ret.cruiseState.speed = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSpeedSetpoint"] * CV.KPH_TO_MS
     
@@ -121,12 +123,15 @@ class CarState(CarStateBase):
       ("ACCSTATE", "ASCMActiveCruiseControlStatus"),
       ("ACCSpeedSetpoint", "ASCMActiveCruiseControlStatus"),
       ("TRANSMISSION_STATE", "ECMPRDNL"),
+      ("LKA_ACTIVE", "LKAS_HUD"),
+      ("LKAS_STATE", "LKAS_HUD"),
     ]
 
     checks = [
       ("BCMTurnSignals", 1),
       ("ECMEngineStatus", 10),
       ("EPBStatus", 10),
+      ("LKAS_HUD", 10),
       ("ECMPRDNL", 10),
       ("BCMDoorBeltStatus", 10),
       ("EBCMWheelSpdFront", 20),

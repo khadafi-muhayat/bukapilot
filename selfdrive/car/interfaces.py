@@ -165,6 +165,8 @@ class CarInterfaceBase(ABC):
       elif not cs_out.cruiseState.enabled:
         events.add(EventName.pcmDisable)
 
+    print("Events : %s" % events.events)
+
     return events
 
 

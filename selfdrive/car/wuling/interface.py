@@ -122,9 +122,7 @@ class CarInterface(CarInterfaceBase):
 
     #   ret.buttonEvents = [be]
 
-    events = self.create_common_events(ret, extra_gears=[GearShifter.sport, GearShifter.low,
-                                                         GearShifter.eco, GearShifter.manumatic],
-                                       pcm_enable=self.CP.pcmCruise)
+    events = self.create_common_events(ret)
     
     
      # create events for auto lane change below allowable speed
