@@ -85,6 +85,7 @@ class CarState(CarStateBase):
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
 
     print('Cruise speed :  %d' % ret.cruiseState.speed)
+    print('Cruise enable :  %s' % ret.cruiseState.enabled)
 
     #trans state 15 "PARKING" 1 "DRIVE" 14 "BACKWARD" 13 "NORMAL"
     
