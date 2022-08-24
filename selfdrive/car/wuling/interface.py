@@ -22,7 +22,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.carName = "wuling"
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.wuling)]
-    ret.safetyConfigs[0].safetyParam = 2
+    # ret.safetyConfigs[0].safetyParam = 2
     ret.transmissionType = car.CarParams.TransmissionType.automatic
     ret.radarOffCan = True
     ret.lateralTuning.init('pid')
