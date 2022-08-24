@@ -9,7 +9,7 @@
 
 #include "common.h"
 
-#define DEBUG(...)
+#define DEBUG printf
 // #define DEBUG printf
 #define INFO printf
 
