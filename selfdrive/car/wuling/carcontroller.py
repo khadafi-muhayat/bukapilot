@@ -135,7 +135,7 @@ class CarController():
     new_actuators.gas = self.apply_gas
     new_actuators.brake = self.apply_brake
     
-    print('Last enable :  %s' % self.enabled)
+    print('Last enable :  %s' % enabled)
     
     if (enabled):
         print('enable adas')

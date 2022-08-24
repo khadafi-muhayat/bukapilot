@@ -15,6 +15,7 @@
 #include "safety/safety_volkswagen_mqb.h"
 #include "safety/safety_volkswagen_pq.h"
 #include "safety/safety_elm327.h"
+#include "safety/safety_wuling.h"
 
 // from cereal.car.CarParams.SafetyModel
 #define SAFETY_SILENT 0U
@@ -252,13 +253,13 @@ const safety_hook_config safety_hook_registry[] = {
   {SAFETY_NOOUTPUT, &nooutput_hooks},
   {SAFETY_HYUNDAI_LEGACY, &hyundai_legacy_hooks},
   {SAFETY_MAZDA, &mazda_hooks},
+  {SAFETY_WULING, &wuling_hooks},
 #ifdef ALLOW_DEBUG
   {SAFETY_TESLA, &tesla_hooks},
   {SAFETY_SUBARU_LEGACY, &subaru_legacy_hooks},
   {SAFETY_VOLKSWAGEN_PQ, &volkswagen_pq_hooks},
   {SAFETY_ALLOUTPUT, &alloutput_hooks},
   {SAFETY_FORD, &ford_hooks},
-  {SAFETY_WULING, &wuling_hooks},
 #endif
 };
 
