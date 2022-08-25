@@ -566,6 +566,7 @@ struct CarParams {
     stellantis @25;
     proton @26;
     perodua @27;
+    wuling @28;
   }
 
   enum SteerControlType {
