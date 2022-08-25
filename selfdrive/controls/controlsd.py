@@ -365,6 +365,8 @@ class Controls:
           self.state = State.enabled
 
         Params().put_bool("ControlsReady", True)
+    
+    print('controls panda is Allowed :  %s' % self.sm['pandaStates'][0].controlsAllowed)
 
     # Check for CAN timeout
     if not can_strs:
@@ -405,6 +407,7 @@ class Controls:
     self.soft_disable_timer = max(0, self.soft_disable_timer - 1)
 
     self.current_alert_types = [ET.PERMANENT]
+    print('State before enable :  %s' % self.state)
 
     # ENABLED, PRE ENABLING, SOFT DISABLING
     if self.state != State.disabled:
@@ -446,6 +449,11 @@ class Controls:
 
     # DISABLED
     elif self.state == State.disabled:
+      print("state is still disabled")
+      print("et enable : %s" % self.events.any(ET.ENABLE))
+      print("et no entry : %s" % self.events.any(ET.NO_ENTRY))
+      print("et preenable : %s" % self.events.any(ET.PRE_ENABLE))
+      
       if self.events.any(ET.ENABLE):
         if self.events.any(ET.NO_ENTRY):
           self.current_alert_types.append(ET.NO_ENTRY)
@@ -458,6 +466,7 @@ class Controls:
           self.current_alert_types.append(ET.ENABLE)
           self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last)
 
+    print("current alert types : %s" % self.current_alert_types)
     # Check if actuators are enabled
     self.active = self.state == State.enabled or self.state == State.softDisabling
     if self.active:
@@ -465,6 +474,7 @@ class Controls:
 
     # Check if openpilot is engaged
     self.enabled = self.active or self.state == State.preEnabled
+    print('State enable :  %s' % self.state)
 
   def state_control(self, CS):
     """Given the state, this function returns an actuators packet"""
@@ -614,6 +624,9 @@ class Controls:
     if not self.read_only and self.initialized:
       # send car controls over can
       self.last_actuators, can_sends = self.CI.apply(CC)
+      # debug
+      print('Can sends :  %s' % can_sends)
+
       self.pm.send('sendcan', can_list_to_can_capnp(can_sends, msgtype='sendcan', valid=CS.canValid))
       CC.actuatorsOutput = self.last_actuators
 
