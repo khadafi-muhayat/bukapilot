@@ -140,6 +140,7 @@ class CarInterface(CarInterfaceBase):
     # events.events.extend(create_button_enable_events(ret.buttonEvents, pcm_cruise=self.CP.pcmCruise))
 
     ret.events = events.to_msg()
+    print("Events : %s" % events.to_msg())
 
     return ret
   

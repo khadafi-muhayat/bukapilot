@@ -258,6 +258,11 @@ class Controls:
       else:
         safety_mismatch = pandaState.safetyModel not in IGNORED_SAFETY_MODES
 
+      print("Safety mismatch %s" % safety_mismatch)
+      print("Safety model : %s, safety model config  %s" % (pandaState.safetyModel,self.CP.safetyConfigs[i].safetyModel ))
+      print("Safety param : %s, safety param config  %s" % (pandaState.safetyParam,self.CP.safetyConfigs[i].safetyParam ))
+      print("Mismatch counter %d" % self.mismatch_counter)
+      
       if safety_mismatch or self.mismatch_counter >= 200:
         self.events.add(EventName.controlsMismatch)
 

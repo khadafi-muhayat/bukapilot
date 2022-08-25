@@ -105,8 +105,8 @@ class CarController():
 
           idx = (self.frame // 4) % 4
 
-          at_full_stop = CC.longActive and CS.out.standstill
-          near_stop = CC.longActive and (CS.out.vEgo < self.params.NEAR_STOP_BRAKE_PHASE)
+          # at_full_stop = CC.longActive and CS.out.standstill
+          # near_stop = CC.longActive and (CS.out.vEgo < self.params.NEAR_STOP_BRAKE_PHASE)
           
           print('Apply gas %d' % self.apply_gas)
           print('Apply brake %d' % self.apply_brake)
@@ -118,7 +118,7 @@ class CarController():
           # Send dashboard UI commands (ACC status)
           send_fcw = hud_alert == VisualAlert.fcw
           # can_sends.append(wulingcan.create_acc_dashboard_command(self.packer_pt, CanBus.POWERTRAIN, CC.enabled, hud_v_cruise * CV.MS_TO_KPH, hud_control.leadVisible, send_fcw))
-    if (frame % 2) == 0:
+    if (frame % 5) == 0:
       print('UI Command HUD Speed :  %s' % hud_speed)
       # can_sends.append(make_can_msg(0x373, b"\x82\x01\x00\x00\xac\x90\x02\xc1", 0))
       # can_sends.append(make_can_msg(0x260, b"\x0f\xe8\x00\x80\x00\x06\xfe\x7b", 0))
