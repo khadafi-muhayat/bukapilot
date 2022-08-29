@@ -105,8 +105,8 @@ class CarController():
 
           idx = (self.frame // 4) % 4
 
-          at_full_stop = CC.longActive and CS.out.standstill
-          near_stop = CC.longActive and (CS.out.vEgo < self.params.NEAR_STOP_BRAKE_PHASE)
+          # at_full_stop = CC.longActive and CS.out.standstill
+          # near_stop = CC.longActive and (CS.out.vEgo < self.params.NEAR_STOP_BRAKE_PHASE)
           
           print('Apply gas %d' % self.apply_gas)
           print('Apply brake %d' % self.apply_brake)
