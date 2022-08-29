@@ -43,6 +43,10 @@ class CarState(CarStateBase):
     ret.seatbeltUnlatched = cp.vl["SEATBELTS"]['RIGHT_SIDE_SEATBELT_ACTIVE_LOW'] == 1
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
+<<<<<<< HEAD
+=======
+    # Todo: need?
+>>>>>>> snapshot
     disengage = ret.doorOpen or ret.seatbeltUnlatched
     if disengage:
       self.is_cruise_latch = False
@@ -53,15 +57,24 @@ class CarState(CarStateBase):
 
     # brake pedal
     ret.brake = cp.vl["BRAKE"]['BRAKE_PRESSURE']
+<<<<<<< HEAD
     ret.brakePressed = bool(cp.vl["PARKING_BRAKE"]["BRAKE_PRESSED"])
+=======
+    ret.brakePressed = ret.brake >  0.01
+>>>>>>> snapshot
 
     # steer
     ret.steeringAngleDeg = cp.vl["STEERING_MODULE"]['STEER_ANGLE']
     steer_dir = 1 if (ret.steeringAngleDeg >= 0) else -1
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE'] * steer_dir
+<<<<<<< HEAD
     ret.steeringTorqueEps = ret.steeringTorque
     #ret.steeringPressed = bool(abs(ret.steeringTorqueEps) > 3)
     ret.steeringPressed = bool(abs(ret.steeringTorqueEps) > 20)
+=======
+    ret.steeringTorqueEps = cp.vl["STEERING_TORQUE"]['DRIVER_TORQUE'] * steer_dir
+    ret.steeringPressed = bool(abs(ret.steeringTorqueEps) > 3)
+>>>>>>> snapshot
     ret.steerWarning = False
     ret.steerError = False
 
@@ -72,7 +85,11 @@ class CarState(CarStateBase):
     ret.stockAeb = False
     ret.stockFcw = False
 
+<<<<<<< HEAD
     ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_ON_OFF_BUTTON"] != 0
+=======
+    ret.cruiseState.available = cp.vl["ACC_CMD"]["CRUISE_ENABLE"] != 0
+>>>>>>> snapshot
     distance_val = int(cp.vl["PCM_BUTTONS"]['SET_DISTANCE'])
     ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(distance_val, None))
 
@@ -103,8 +120,13 @@ class CarState(CarStateBase):
     if self.CP.enableBsm:
       # used for lane change so its okay for the chime to work on both side.
       # Todo: to find
+<<<<<<< HEAD
       ret.leftBlindspot = bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH"])
       ret.rightBlindspot = bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH"])
+=======
+      ret.leftBlindspot = False
+      ret.rightBlindspot = False
+>>>>>>> snapshot
     else:
       ret.leftBlindspot = False
       ret.rightBlindspot = False
@@ -119,23 +141,36 @@ class CarState(CarStateBase):
       ("WHEELSPEED_F", "WHEEL_SPEED", 0.),
       ("WHEELSPEED_B", "WHEEL_SPEED", 0.),
       ("SET_DISTANCE", "PCM_BUTTONS", 0.),
+<<<<<<< HEAD
       ("BRAKE_PRESSED", "PARKING_BRAKE", 0.),
       ("CAR_ON_HOLD", "PARKING_BRAKE", 0.),
       ("ACC_SET", "PCM_BUTTONS", 0.),
       ("ACC_SET_SPEED", "PCM_BUTTONS", 0.),
       ("ACC_ON_OFF_BUTTON", "PCM_BUTTONS", 0.),
+=======
+      ("CAR_ON_HOLD", "PARKING_BRAKE", 0.),
+      ("ACC_SET", "PCM_BUTTONS", 0.),
+      ("ACC_SET_SPEED", "PCM_BUTTONS", 0.),
+>>>>>>> snapshot
       ("GEAR", "TRANSMISSION", 0),
       ("APPS_1", "GAS_PEDAL", 0.),
       ("BRAKE_PRESSURE", "BRAKE", 0.),
       ("MAIN_TORQUE", "STEERING_TORQUE", 0),
       ("DRIVER_TORQUE", "STEERING_TORQUE", 0),
       ("STEER_ANGLE", "STEERING_MODULE", 0),
+<<<<<<< HEAD
+=======
+      ("CRUISE_ENABLE", "ACC_CMD", 0),
+>>>>>>> snapshot
       ("ESC_ON", "PARKING_BRAKE", 0),
       ("LEFT_SIGNAL", "LEFT_STALK", 0),
       ("RIGHT_SIGNAL", "LEFT_STALK", 0),
       ("GENERIC_TOGGLE", "LEFT_STALK", 0),
+<<<<<<< HEAD
       ("RIGHT_APPROACH", "BSM_ADAS", 0),
       ("LEFT_APPROACH", "BSM_ADAS", 0),
+=======
+>>>>>>> snapshot
       ("RIGHT_SIDE_SEATBELT_ACTIVE_LOW", "SEATBELTS", 0),
       ("BACK_LEFT_DOOR", "DOOR_LEFT_SIDE", 1),
       ("FRONT_LEFT_DOOR", "DOOR_LEFT_SIDE", 1),

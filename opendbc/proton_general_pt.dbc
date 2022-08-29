@@ -107,7 +107,10 @@ BO_ 896 SEATBELTS: 8 XXX
  SG_ LEFT_SIDE_SEATBELT_ACTIVE_LOW : 1|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 293 PARKING_BRAKE: 8 XXX
+<<<<<<< HEAD
  SG_ BRAKE_PRESSED : 1|1@0+ (1,0) [0|1] "" XXX
+=======
+>>>>>>> snapshot
  SG_ CAR_ON_HOLD : 27|1@0+ (1,0) [0|1] "" XXX
  SG_ ESC_ON : 16|1@0+ (1,0) [0|1] "" XXX
  SG_ ENGAGING_TILL_RELEASE : 28|1@0+ (1,0) [0|1] "" XXX
@@ -116,18 +119,28 @@ BO_ 275 TRANSMISSION: 8 XXX
  SG_ GEAR : 39|4@0+ (1,0) [0|255] "" XXX
 
 BO_ 290 WHEEL_SPEED: 8 XXX
+<<<<<<< HEAD
  SG_ WHEELSPEED_B : 23|16@0+ (0.007,0) [0|65535] "" XXX
  SG_ WHEELSPEED_F : 7|16@0+ (0.007,0) [0|65535] "" XXX
+=======
+ SG_ WHEELSPEED_B : 23|16@0+ (0.0070,0) [0|65535] "" XXX
+ SG_ WHEELSPEED_F : 7|16@0+ (0.0070,0) [0|65535] "" XXX
+>>>>>>> snapshot
  SG_ COUNTER : 48|4@1+ (1,0) [0|15] "" XXX
 
 BO_ 419 PCM_BUTTONS: 8 XXX
  SG_ SET_DISTANCE : 12|2@0+ (1,0) [0|3] "" XXX
  SG_ DISTANCE_SETTING_BUTTON : 14|1@0+ (1,0) [0|1] "" XXX
  SG_ ACC_ON_OFF_BUTTON : 17|1@0+ (1,0) [0|1] "" XXX
+<<<<<<< HEAD
  SG_ ACC_SET_SPEED : 7|8@0+ (1,0) [0|255] "" XXX
  SG_ ACC_SET : 16|1@0+ (1,0) [0|1] "" XXX
  SG_ COUNTER : 48|4@1+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 56|8@1+ (1,0) [0|255] "" XXX
+=======
+ SG_ ACC_SET : 16|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_SET_SPEED : 7|8@0+ (1,0) [0|255] "" XXX
+>>>>>>> snapshot
 
 BO_ 676 POWER_MODE: 8 XXX
  SG_ MODE : 15|2@0+ (1,0) [0|3] "" XXX
@@ -135,7 +148,11 @@ BO_ 676 POWER_MODE: 8 XXX
 BO_ 753 AIRCON: 8 XXX
  SG_ AC_ON : 2|1@0+ (1,0) [0|511] "" XXX
 
+<<<<<<< HEAD
 BO_ 754 HVAC: 8 XXX
+=======
+BO_ 754 NEW_MSG_1: 8 XXX
+>>>>>>> snapshot
  SG_ AIRCON_TEMP : 24|5@1+ (1,0) [0|15] "" XXX
  SG_ AIRCON_FAN : 8|4@1+ (1,0) [0|15] "" XXX
  SG_ WINDSHIELD_DEFOG_ON : 18|1@0+ (1,0) [0|1] "" XXX
@@ -144,6 +161,7 @@ BO_ 528 WHEELSPEED: 8 XXX
  SG_ WHEELSPEED_FRONT : 7|16@0+ (0.0088,-0.0704) [0|16777215] "" XXX
  SG_ WHEELSPEED_BACK : 23|16@0+ (0.0011,-0.0704) [0|65535] "" XXX
 
+<<<<<<< HEAD
 BO_ 401 BSM_ADAS: 8 XXX
  SG_ RIGHT_APPROACH : 21|1@0+ (1,0) [0|1] "" XXX
  SG_ LEFT_APPROACH : 19|1@0+ (1,0) [0|1] "" XXX
@@ -202,3 +220,8 @@ VAL_ 275 GEAR 15 "D" 14 "D" 13 "D" 12 "D" 11 "R" 10 "P" 9 "D" 8 "D" 7 "D" 6 "D" 
 VAL_ 419 SET_DISTANCE 3 "3BAR" 2 "2BAR" 1 "1BAR" ;
 VAL_ 676 MODE 2 "NORMAL" 1 "SPORT" 0 "ECO" ;
 
+=======
+VAL_ 676 MODE 2 "NORMAL" 1 "SPORT" 0 "ECO" ;
+VAL_ 275 GEAR 15 "D" 14 "D" 13 "D" 12 "D" 11 "R" 10 "P" 9 "D" 8 "D" 7 "D" 6 "D" 5 "D" 4 "D" 3 "D" 2 "D" 1 "D" 0 "N" ;
+VAL_ 419 SET_DISTANCE 3 "3BAR" 2 "2BAR" 1 "1BAR" ;
+>>>>>>> snapshot
