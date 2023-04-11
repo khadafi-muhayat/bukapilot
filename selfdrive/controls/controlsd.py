@@ -74,6 +74,10 @@ class Controls:
 
     self.is_qc_test = params.get("QC_Test") is not None
     self.joystick_mode = params.get_bool("JoystickDebugMode")
+    
+    # for debug only
+    # self.joystick_mode = True;
+    
     joystick_packet = ['testJoystick'] if self.joystick_mode else []
 
     self.sm = sm
@@ -141,6 +145,7 @@ class Controls:
     self.state = State.disabled
     self.enabled = False
     self.active = False
+    
     self.can_rcv_error = False
     self.soft_disable_timer = 0
     self.v_cruise_kph = 255
@@ -157,6 +162,12 @@ class Controls:
     self.button_timers = {ButtonEvent.Type.decelCruise: 0, ButtonEvent.Type.accelCruise: 0}
     self.last_actuators = car.CarControl.Actuators.new_message()
 
+    self._params = params
+
+    self.params_check_last_t = 0.0
+    self.params_check_freq = 0.3
+    self.op_params_override_lateral = self._params.get_bool('OPParamsLateralOverride')
+    
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -217,6 +228,13 @@ class Controls:
     #if max(cpus, default=0) > 95 and not SIMULATION:
     #  self.events.add(EventName.highCpuUsage)
 
+    t = sec_since_boot()
+    if t - self.params_check_last_t > self.params_check_freq:
+      if self.op_params_override_lateral:
+        self.LaC.update_op_params()
+        print("Update OP Param")
+      self.params_check_last_t = t
+      
     # Alert if fan isn't spinning for 5 seconds
     if self.sm['peripheralState'].pandaType in (PandaType.uno, PandaType.dos):
       if self.sm['peripheralState'].fanSpeedRpm == 0 and self.sm['deviceState'].fanSpeedPercentDesired > 50:
@@ -260,10 +278,10 @@ class Controls:
       else:
         safety_mismatch = pandaState.safetyModel not in IGNORED_SAFETY_MODES
 
-      print("Safety mismatch %s" % safety_mismatch)
-      print("Safety model : %s, safety model config  %s" % (pandaState.safetyModel,self.CP.safetyConfigs[i].safetyModel ))
-      print("Safety param : %s, safety param config  %s" % (pandaState.safetyParam,self.CP.safetyConfigs[i].safetyParam ))
-      print("Mismatch counter %d" % self.mismatch_counter)
+      # print("Safety mismatch %s" % safety_mismatch)
+      # print("Safety model : %s, safety model config  %s" % (pandaState.safetyModel,self.CP.safetyConfigs[i].safetyModel ))
+      # print("Safety param : %s, safety param config  %s" % (pandaState.safetyParam,self.CP.safetyConfigs[i].safetyParam ))
+      # print("Mismatch counter %d" % self.mismatch_counter)
       
       if safety_mismatch or self.mismatch_counter >= 200:
         self.events.add(EventName.controlsMismatch)
@@ -377,7 +395,7 @@ class Controls:
 
         Params().put_bool("ControlsReady", True)
     
-    print('controls panda is Allowed :  %s' % self.sm['pandaStates'][0].controlsAllowed)
+    # print('controls panda is Allowed :  %s' % self.sm['pandaStates'][0].controlsAllowed)
 
     # Check for CAN timeout
     if not can_strs:
@@ -418,7 +436,7 @@ class Controls:
     self.soft_disable_timer = max(0, self.soft_disable_timer - 1)
 
     self.current_alert_types = [ET.PERMANENT]
-    print('State before enable :  %s' % self.state)
+    # print('State before enable :  %s' % self.state)
 
     # ENABLED, PRE ENABLING, SOFT DISABLING
     if self.state != State.disabled:
@@ -432,7 +450,8 @@ class Controls:
         self.current_alert_types.append(ET.IMMEDIATE_DISABLE)
 
       else:
-        # ENABLED
+        # print("Soft disable timer : %s" % self.soft_disable_timer)
+        # ENABLED   
         if self.state == State.enabled:
           if self.events.any(ET.SOFT_DISABLE):
             self.state = State.softDisabling
@@ -460,10 +479,10 @@ class Controls:
 
     # DISABLED
     elif self.state == State.disabled:
-      print("state is still disabled")
-      print("et enable : %s" % self.events.any(ET.ENABLE))
-      print("et no entry : %s" % self.events.any(ET.NO_ENTRY))
-      print("et preenable : %s" % self.events.any(ET.PRE_ENABLE))
+      # print("state is still disabled")
+      # print("et enable : %s" % self.events.any(ET.ENABLE))
+      # print("et no entry : %s" % self.events.any(ET.NO_ENTRY))
+      # print("et preenable : %s" % self.events.any(ET.PRE_ENABLE))
       
       if self.events.any(ET.ENABLE):
         if self.events.any(ET.NO_ENTRY):
@@ -485,7 +504,7 @@ class Controls:
 
     # Check if openpilot is engaged
     self.enabled = self.active or self.state == State.preEnabled
-    print('State enable :  %s' % self.state)
+    # print('State enable :  %s' % self.state)
 
   def state_control(self, CS):
     """Given the state, this function returns an actuators packet"""
@@ -505,10 +524,16 @@ class Controls:
     if CS.leftBlinker or CS.rightBlinker:
       self.last_blinker_frame = self.sm.frame
 
+
+    # for debug 
+    if self.joystick_mode:
+      self.enabled = True
+      self.active = True
+    
     # State specific actions
 
     if not self.active:
-      self.LaC.reset()
+      self.LaC.reset()  
       self.LoC.reset(v_pid=CS.vEgo)
 
     if not self.joystick_mode:
@@ -524,15 +549,19 @@ class Controls:
                                                                              lat_plan.curvatureRates)
       actuators.steer, actuators.steeringAngleDeg, lac_log = self.LaC.update(lat_active, CS, self.CP, self.VM, params, self.last_actuators,
                                                                              desired_curvature, desired_curvature_rate)
+      
+      print("Steer Actuator %d and Angle %d" % (actuators.steer, actuators.steeringAngleDeg))
     else:
       lac_log = log.ControlsState.LateralDebugState.new_message()
+      print("Joystik mode control")
+      
       if self.sm.rcv_frame['testJoystick'] > 0 and self.active:
         actuators.accel = 4.0*clip(self.sm['testJoystick'].axes[0], -1, 1)
 
         steer = clip(self.sm['testJoystick'].axes[1], -1, 1)
         # max angle is 45 for angle-based cars
         actuators.steer, actuators.steeringAngleDeg = steer, steer * 45.
-
+        print("Steer joystick %d" % (actuators.steer))
         lac_log.active = True
         lac_log.steeringAngleDeg = CS.steeringAngleDeg
         lac_log.output = steer

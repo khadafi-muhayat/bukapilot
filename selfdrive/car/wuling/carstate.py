@@ -74,15 +74,21 @@ class CarState(CarStateBase):
     # dp - brake lights
     # ret.brakeLights = ret.brakePressed
     
-    # ret.cruiseState.enabled = pt_cp.vl["ASCMActiveCruiseControlStatus"]["LKA_ACTIVE"] != 0
-    ret.cruiseState.enabled = pt_cp.vl["LKAS_HUD"]["LKA_ACTIVE"] != 0
+
+    
+    # ret.cruiseState.enabled = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSTATE"] != 0
+    ret.cruiseState.enabled = pt_cp.vl["LKAS_HUD"]["LKA_ACTIVE"] != 0 or pt_cp.vl["LKAS_HUD"]["LKAS_STATE"] != 0
     # ret.cruiseState.enabled = True
     # ret.cruiseActualEnabled = ret.cruiseState.enabled
-    ret.cruiseState.available = pt_cp.vl["LKAS_HUD"]["LKA_ACTIVE"] != 0
-    # ret.cruiseState.available = pt_cp.vl["ASCMActiveCruiseControlStatus"]["LKA_ACTIVE"] != 0
+    # ret.cruiseState.available = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSTATE"] != 0
+    ret.cruiseState.available = pt_cp.vl["LKAS_HUD"]["LKA_ACTIVE"] != 0 or pt_cp.vl["LKAS_HUD"]["LKAS_STATE"] != 0
     # ret.cruiseState.available = True
-    ret.cruiseState.speed = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSpeedSetpoint"] * CV.KPH_TO_MS
     
+    #self.cruise_speed = max(min(self.cruise_speed, 130 * CV.KPH_TO_MS), 30 * CV.KPH_TO_MS)
+    ret.cruiseState.speed = pt_cp.vl["ASCMActiveCruiseControlStatus"]["ACCSpeedSetpoint"] * CV.KPH_TO_MS
+    ret.cruiseState.speed = self.cruise_speed
+    
+    ret.cruiseState.speedCluster = self.cruise_speed
     ret.steeringTorque = pt_cp.vl["PSCMSteeringAngle"]["SteeringTorque"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
 

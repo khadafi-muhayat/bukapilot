@@ -4,6 +4,7 @@ from selfdrive.controls.lib.pid import PIController
 from selfdrive.controls.lib.drive_helpers import get_steer_max
 from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
 from cereal import log
+from selfdrive.config import Conversions as CV
 
 
 class LatControlPID(LatControl):
@@ -13,7 +14,17 @@ class LatControlPID(LatControl):
                             (CP.lateralTuning.pid.kiBP, CP.lateralTuning.pid.kiV),
                             k_f=CP.lateralTuning.pid.kf, pos_limit=1.0, neg_limit=-1.0)
     self.get_steer_feedforward = CI.get_steer_feedforward_function()
+    self.tune_override = self._op_params.get('TUNE_LAT_do_override', force_update=True)
 
+
+  def update_op_params(self):
+    if not self.tune_override:
+      return
+    bp = [i * CV.MPH_TO_MS for i in self._op_params.get(f"TUNE_LAT_PID_bp_mph")]
+    self.pid._k_p = [bp, self._op_params.get("TUNE_LAT_PID_kp")]
+    self.pid._k_i = [bp, self._op_params.get("TUNE_LAT_PID_ki")]
+    self.pid.k_f = self._op_params.get('TUNE_LAT_PID_kf')
+    
   def reset(self):
     super().reset()
     self.pid.reset()

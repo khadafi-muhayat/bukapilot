@@ -6,6 +6,8 @@ from selfdrive.car.wuling.values import CAR, CruiseButtons,AccState
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
+from selfdrive.config import Conversions as CV
+from common.op_params import opParams
 
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
@@ -19,6 +21,7 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None, disable_radar=False):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
+    op_params = opParams("wuling car_interface.py for lateral override")
 
     ret.carName = "wuling"
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.wuling)]
@@ -36,16 +39,47 @@ class CarInterface(CarInterfaceBase):
 
     ret.steerRateCost = 0.7
     ret.steerLimitTimer = 0.1
-    # ret.steerLimitTimer = 0.4
-    ret.mass = 3000. + STD_CARGO_KG
+    ret.mass = 1900. + STD_CARGO_KG
     ret.wheelbase = 2.75
-    ret.centerToFront = ret.wheelbase * 0.5
-    ret.steerRatio = 13.5
-    ret.steerActuatorDelay = 0.3   # end-to-end angle controller
+    ret.centerToFront = ret.wheelbase * 0.4
+    ret.steerRatio = op_params.get('steer_ratio', force_update=True)
+    
+    # -----
+    ret.steerActuatorDelay = 0.1   # end-to-end angle controller
+    # ret.lateralTuning.pid.kf = 0.00003
+    # ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[40, 70], [300, 830]]
+    
+    # tuning wuling PID
     ret.lateralTuning.pid.kf = 0.00003
-    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20.], [0., 20.]]
-    ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.0025, 0.1], [0.00025, 0.01]]
+    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 0.], [0., 0.]]
+    ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0., 0.], [0., 0.]]
 
+    # Live tune
+    bp = [i * CV.MPH_TO_MS for i in op_params.get("TUNE_LAT_PID_bp_mph", force_update=True)]
+    kpV = [i for i in op_params.get("TUNE_LAT_PID_kp", force_update=True)]
+    kiV = [i for i in op_params.get("TUNE_LAT_PID_ki", force_update=True)]
+    ret.lateralTuning.pid.kpV = kpV
+    ret.lateralTuning.pid.kiV = kiV
+    ret.lateralTuning.pid.kpBP = bp
+    ret.lateralTuning.pid.kiBP = bp
+    ret.lateralTuning.pid.kf = op_params.get('TUNE_LAT_PID_kf', force_update=True)
+    
+    # ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
+    # ret.longitudinalTuning.kpV = [0.9, 0.8, 0.8]
+    
+    # ret.longitudinalTuning.kpV = [0.8, 0.9, 1.0]
+    # ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.32]]
+    # ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[10, 26], [200, 430]]
+
+    # ----
+
+    # tuning
+    # ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
+    # ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.00]]
+    # ret.lateralTuning.pid.kf = 0.00004   # full torque for 20 deg at 80mph means 0.00007818594
+    # ret.steerRateCost = 1.0
+    # ret.steerActuatorDelay = 0.1  # Default delay, not measured yet
+    
     # TODO: get actual value, for now starting with reasonable value for
     # civic and scaling by mass and wheelbase
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
@@ -140,7 +174,7 @@ class CarInterface(CarInterfaceBase):
     # events.events.extend(create_button_enable_events(ret.buttonEvents, pcm_cruise=self.CP.pcmCruise))
 
     ret.events = events.to_msg()
-    print("Events : %s" % events.to_msg())
+    # print("Events : %s" % events.to_msg())
 
     return ret
   

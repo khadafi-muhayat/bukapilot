@@ -3,7 +3,7 @@ from selfdrive.car.wuling import wulingcan
 from selfdrive.car.wuling.values import DBC, CanBus, PREGLOBAL_CARS, CarControllerParams
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car import make_can_msg
-from common.numpy_fast import interp
+from common.numpy_fast import clip, interp
 
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -11,13 +11,23 @@ from cereal import car
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
+def apply_acttr_steer_torque_limits(apply_torque, apply_torque_last, LIMITS):
+  # slow rate if steer torque increases in magnitude
+  if apply_torque_last > 0:
+    apply_torque = clip(apply_torque, max(apply_torque_last - LIMITS.STEER_DELTA_DOWN, -LIMITS.STEER_DELTA_UP),
+                        apply_torque_last + LIMITS.STEER_DELTA_UP)
+  else:
+    apply_torque = clip(apply_torque, apply_torque_last - LIMITS.STEER_DELTA_UP,
+                        min(apply_torque_last + LIMITS.STEER_DELTA_DOWN, LIMITS.STEER_DELTA_UP))
+
+  return int(round(float(apply_torque)))
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.CP = CP
     self.start_time = 0.
     self.frame = 0
     self.last_button_frame = 0
-    
+
     # dp
     self.last_blinker_on = False
     self.blinker_end_frame = 0.
@@ -29,6 +39,9 @@ class CarController():
     self.steer_rate_limited = False
     self.steer_alert_last = False
     self.lkas_action = 0
+    
+    self.STEER_BP = CP.lateralParams.torqueBP
+    self.STEER_LIM_TORQ = CP.lateralParams.torqueV
     
     self.apply_gas = 0
     self.apply_brake = 0
@@ -59,17 +72,24 @@ class CarController():
     lkas_active = True
     
     apply_steer = actuators.steer
-    
+    print("Steer Actuator %d" % apply_steer)
+
     if CS.lka_steering_cmd_counter != self.lka_steering_cmd_counter_last:
       self.lka_steering_cmd_counter_last = CS.lka_steering_cmd_counter
-    elif (frame % 4 == 0) :
+    elif (frame % 2 == 0) :
       lkas_enabled = CC.active and not (CS.out.steerWarning or CS.out.steerError) and CS.out.vEgo > P.MIN_STEER_SPEED
-      # lkas_enabled = True
-      print('lkas_enabled :  %s' % lkas_enabled)
+      lkas_enabled = True
+      # print('lkas_enabled :  %s' % lkas_enabled)
       if lkas_enabled:
-        new_steer = int(round(actuators.steer * P.STEER_MAX))
-        apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, P)
-        self.steer_rate_limited = new_steer != apply_steer
+        # new_steer = int(round(actuators.steer * P.STEER_MAX))
+        print("Steering torque : %d" % CS.out.steeringTorque)
+        # apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, P)
+        # self.steer_rate_limited = new_steer != apply_steer
+        
+        steer_max_interp = interp(CS.out.vEgo, self.STEER_BP, self.STEER_LIM_TORQ)
+        new_steer = int(round(actuators.steer * steer_max_interp))
+        apply_steer = apply_acttr_steer_torque_limits(new_steer, self.apply_steer_last, self.params)
+        self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
       else:
         apply_steer = 0
 
@@ -90,10 +110,12 @@ class CarController():
       # moment of disengaging, increment the counter based on the last message known to pass Panda safety checks.
     
       idx = (CS.lka_steering_cmd_counter + 1) % 4
-      # can_sends.append(wulingcan.create_steering_control(self.packer, apply_steer, idx, 1))
+      print("Steer command %d" % apply_steer)
+      can_sends.append(wulingcan.create_steering_control(self.packer, (apply_steer * -1), frame))
 
     if self.CP.openpilotLongitudinalControl:
       if self.frame % 4 == 0:
+        # if not CC.active:
         if not CC.active:
           # Stock ECU sends max regen when not enabled
           self.apply_gas = self.params.MAX_ACC_REGEN
@@ -135,7 +157,7 @@ class CarController():
     new_actuators.gas = self.apply_gas
     new_actuators.brake = self.apply_brake
     
-    print('Last enable :  %s' % enabled)
+    # print('Last enable :  %s' % enabled)
     
     if (enabled):
         print('enable adas')
@@ -147,6 +169,6 @@ class CarController():
     self.main_on_last = CS.out.cruiseState.available
     self.steer_alert_last = steer_alert
 
-    print('Steer :  %s' % apply_steer)
+    # print('Steer :  %s' % apply_steer)
 
     return new_actuators, can_sends

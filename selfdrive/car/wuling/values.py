@@ -47,7 +47,9 @@ class CarControllerParams:
 
   GAS_LOOKUP_V = [MAX_ACC_REGEN, ZERO_GAS, MAX_GAS]
   BRAKE_LOOKUP_V = [MAX_BRAKE, 0.]
-  
+
+  STEER_DELTA_UP = 10
+  STEER_DELTA_DOWN = 30
 
 
 class CAR:
@@ -84,7 +86,7 @@ DBC = {
   CAR.ALMAS_RS_PRO: dbc_dict('wuling_almazrs_generated', None),
 }
 
-STEER_THRESHOLD = 1.0
-HUD_MULTIPLIER = 1.078
+STEER_THRESHOLD = 2.0
+HUD_MULTIPLIER = 0.95
 
 PREGLOBAL_CARS = []
